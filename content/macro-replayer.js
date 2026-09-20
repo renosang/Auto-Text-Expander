@@ -83,15 +83,58 @@
 
     // 1. Hỗ trợ thẻ SELECT
     if (el.tagName === 'SELECT') {
-      let matchedOpt = Array.from(el.options).find(o => o.value === newValue || o.text === newValue);
-      if (matchedOpt) {
-        el.value = matchedOpt.value;
-      } else {
-        el.value = newValue;
+      const cleanTarget = (newValue || '').trim().toLowerCase();
+      
+      let matchedOpt = Array.from(el.options).find(o => {
+        const val = (o.value || '').trim().toLowerCase();
+        const text = (o.text || o.innerText || o.textContent || '').trim().toLowerCase();
+        return (val && val === cleanTarget) || (text && text === cleanTarget);
+      });
+
+      if (!matchedOpt) {
+        matchedOpt = Array.from(el.options).find(o => {
+          const val = (o.value || '').trim().toLowerCase();
+          const text = (o.text || o.innerText || o.textContent || '').trim().toLowerCase();
+          return (text && (text.includes(cleanTarget) || cleanTarget.includes(text))) ||
+                 (val && (val.includes(cleanTarget) || cleanTarget.includes(val)));
+        });
       }
+
+      const targetVal = matchedOpt ? matchedOpt.value : newValue;
+
+      if (matchedOpt) {
+        for (let i = 0; i < el.options.length; i++) {
+          el.options[i].selected = (el.options[i] === matchedOpt);
+        }
+        matchedOpt.selected = true;
+        el.selectedIndex = matchedOpt.index;
+      }
+
+      try { el.focus(); } catch (e) {}
+
+      // React / Vue native setter cho HTMLSelectElement (cực kỳ quan trọng để React cập nhật state!)
+      const selectProto = window.HTMLSelectElement.prototype;
+      const protoSetter = Object.getOwnPropertyDescriptor(selectProto, 'value')?.set;
+      if (protoSetter) {
+        protoSetter.call(el, targetVal);
+      } else {
+        el.value = targetVal;
+      }
+
+      if (el._valueTracker) {
+        el._valueTracker.setValue('');
+      }
+
+      try {
+        el.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
+      } catch (e) {}
+
       try {
         el.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
       } catch (e) {}
+
+      try { el.blur(); } catch (e) {}
+
       return;
     }
 
@@ -157,16 +200,77 @@
   // ELEMENT FINDER VỚI SMART FALLBACK (CHÍNH XÁC CAO - KHÔNG NHẬP NHẦM)
   // -------------------------------------------------------------
   function findElementWithFallback(step) {
-    if (!step || !step.selector) return null;
+    if (!step) return null;
 
-    // 1. Thử trực tiếp bằng selector nguyên bản
+    // 1. Ưu tiên cao nhất: Tìm theo Placeholder nếu nhãn bước có ghi nhận (Chính xác 100% tránh nhầm lẫn giữa các ô input cùng form!)
+    // Ví dụ: Bước 8 có nhãn 'Nhập Ô "VD: Nguyễn Văn A / Team Leader...": "Brand"' -> tìm đúng ô Leader, không bao giờ nhầm vào ô Ticket!
+    // Ví dụ: Bước 2 có nhãn 'Nhập Ô "Nhập mã ticket": "123"' -> tìm đúng ô Ticket!
+    if (step.label) {
+      const matchPlaceholder = step.label.match(/Ô\s*["']([^"']+)["']/);
+      if (matchPlaceholder && matchPlaceholder[1]) {
+        const rawTarget = matchPlaceholder[1].trim();
+        try {
+          const byExact = document.querySelector(`[placeholder="${CSS.escape(rawTarget)}"]`);
+          if (byExact) return byExact;
+        } catch (e) {}
+
+        const normalizePh = (s) => (s || '').toLowerCase().replace(/[\.…\s]+$/g, '').trim();
+        const cleanTarget = normalizePh(rawTarget);
+
+        const allInputs = document.querySelectorAll('input, textarea');
+        for (const input of allInputs) {
+          if (input.placeholder && normalizePh(input.placeholder) === cleanTarget) {
+            return input;
+          }
+        }
+        if (cleanTarget.length >= 4) {
+          for (const input of allInputs) {
+            if (input.placeholder) {
+              const pNorm = normalizePh(input.placeholder);
+              if (pNorm.includes(cleanTarget) || cleanTarget.includes(pNorm)) {
+                return input;
+              }
+            }
+          }
+        }
+      }
+
+      // Tìm theo tiêu đề Mục label (Ví dụ: 'Mục Nguồn thông tin (Source): "Đang kiểm tra"' -> tìm thẻ select/input trong form group đó!)
+      const matchLabel = step.label.match(/(?:Mục|Trường|Chọn)\s+([^:]+):?/i);
+      if (matchLabel && matchLabel[1]) {
+        const cleanTitle = matchLabel[1].replace(/["'\[\]]/g, '').trim().toLowerCase();
+        const allLabels = document.querySelectorAll('label, .text-bold-600, .form-label, .faq-form-label, .control-label, [class*="label"], span, strong');
+        for (const lbl of allLabels) {
+          const txt = (lbl.innerText || lbl.textContent || '').trim().toLowerCase();
+          if (txt && (txt === cleanTitle || txt.includes(cleanTitle) || (cleanTitle.length > 5 && cleanTitle.includes(txt)))) {
+            const container = lbl.closest('.form-group, .faq-form-group, .faq-form-row') || lbl.parentElement;
+            if (container) {
+              const elInside = container.querySelector('select, input, textarea, .ql-editor, .slate-editable-area');
+              if (elInside) return elInside;
+            }
+          }
+        }
+      }
+
+      // Tìm theo tên [name] nếu có trong nhãn
+      const matchField = step.label.match(/Trường\s*\[([^\]]+)\]/);
+      if (matchField && matchField[1]) {
+        try {
+          const byName = document.querySelector(`[name="${CSS.escape(matchField[1])}"]`);
+          if (byName) return byName;
+        } catch (e) {}
+      }
+    }
+
+    if (!step.selector) return null;
+
+    // 2. Thử trực tiếp bằng selector nguyên bản (nếu chỉ có duy nhất 1 phần tử trên trang)
     try {
-      const found = document.querySelector(step.selector);
-      if (found) return found;
+      const allFound = document.querySelectorAll(step.selector);
+      if (allFound.length === 1) return allFound[0];
     } catch (e) {}
 
-    // 2. Thử loại bỏ các dynamic state classes khỏi selector nhưng BẢO TOÀN toàn bộ chuỗi phân cấp (Hierarchy)
-    // Ví dụ: .searchable-brand-input-box.focused -> .searchable-brand-input-box
+    // 3. Thử loại bỏ các dynamic state classes khỏi selector
     try {
       const cleanedSelector = step.selector
         .replace(TRANSIENT_CLASS_REGEX, '')
@@ -175,13 +279,12 @@
         .trim();
 
       if (cleanedSelector && cleanedSelector !== step.selector) {
-        const found = document.querySelector(cleanedSelector);
-        if (found) return found;
+        const allClean = document.querySelectorAll(cleanedSelector);
+        if (allClean.length === 1) return allClean[0];
       }
     } catch (e) {}
 
-    // 3. Thử tìm bằng quan hệ phân cấp tổ tiên (Ancestor Scoped)
-    // Thay dấu > con trực tiếp bằng dấu cách (descendant) để tránh bị trượt nếu web chèn thêm thẻ span/div bọc ngoài
+    // 4. Thử tìm bằng quan hệ phân cấp tổ tiên (Ancestor Scoped)
     try {
       const descendantSelector = step.selector
         .replace(TRANSIENT_CLASS_REGEX, '')
@@ -189,39 +292,31 @@
         .trim();
 
       if (descendantSelector && descendantSelector !== step.selector) {
-        const matches = document.querySelectorAll(descendantSelector);
-        if (matches.length === 1) {
-          return matches[0];
-        }
+        const allDesc = document.querySelectorAll(descendantSelector);
+        if (allDesc.length === 1) return allDesc[0];
       }
     } catch (e) {}
 
-    // 4. Tìm kiếm thông minh trong Modal (nếu selector nhắm vào phần tử modal)
+    // 5. Tìm kiếm thông minh trong Modal
     if (step.selector.includes('modal')) {
       try {
         const modalContainer = document.querySelector('.faq-modal-body, .modal-body, [role="dialog"], .modal.show');
         if (modalContainer) {
-          // Bóc tách selector con bên trong modal
           const subSelector = step.selector
             .replace(/.*(?:modal-body|modal)[^>]*>\s*/i, '')
             .replace(TRANSIENT_CLASS_REGEX, '')
             .trim();
           if (subSelector) {
-            const foundInModal = modalContainer.querySelector(subSelector) ||
-                                 modalContainer.querySelector(subSelector.replace(/\s*>\s*/g, ' '));
-            if (foundInModal) return foundInModal;
-          }
-          // Thử tìm input/textarea tương ứng trong form-group của modal
-          const formGroupInModal = modalContainer.querySelector('.faq-form-group, .form-group');
-          if (formGroupInModal) {
-            const inputInModal = formGroupInModal.querySelector('input, textarea');
-            if (inputInModal) return inputInModal;
+            const foundInModal = modalContainer.querySelectorAll(subSelector);
+            if (foundInModal.length === 1) return foundInModal[0];
+            const foundDesc = modalContainer.querySelectorAll(subSelector.replace(/\s*>\s*/g, ' '));
+            if (foundDesc.length === 1) return foundDesc[0];
           }
         }
       } catch (e) {}
     }
 
-    // 5. Nếu có name attribute trong selector (ví dụ: [name="subject"]) và là duy nhất
+    // 6. Nếu có name attribute trong selector
     const matchName = step.selector.match(/\[name="([^"]+)"\]/);
     if (matchName && matchName[1]) {
       const byName = document.querySelectorAll(`[name="${matchName[1]}"]`);
@@ -230,14 +325,14 @@
       }
     }
 
-    // 6. Nếu có ID trong selector (ví dụ: #ticket-title)
+    // 7. Nếu có ID trong selector
     const matchId = step.selector.match(/#([a-zA-Z0-9_-]+)/);
     if (matchId && matchId[1] && !matchId[1].match(/^react-select/)) {
       const byId = document.getElementById(matchId[1]);
       if (byId) return byId;
     }
 
-    // 7. Nếu là click button và có label text độc nhất
+    // 8. Nếu là click button và có label text độc nhất
     if (step.type === 'click' && step.label) {
       const cleanLabel = step.label.replace(/^Bấm Nút\s*["']?|["']?$/g, '').trim().toLowerCase();
       const buttons = document.querySelectorAll('button, a, [role="button"], input[type="submit"]');
@@ -252,13 +347,38 @@
       }
     }
 
-    // 8. Nếu là Quill hoặc Slate và trên trang CHỈ CÓ ĐÚNG 1 editor duy nhất
-    if (step.type === 'quill' || step.type === 'contenteditable') {
-      const editors = document.querySelectorAll('.ql-editor, .slate-editable-area, [data-slate-editor="true"]');
-      if (editors.length === 1) {
-        return editors[0];
+    // 9. Nếu selector tìm thấy nhiều phần tử trùng lặp trên trang (ví dụ form có nhiều hàng div.faq-form-row giống hệt nhau):
+    // TẬP TRUNG phân biệt dựa theo ngữ cảnh nhãn của hàng (row/group text) thay vì lấy bừa phần tử đầu tiên làm điền nhầm!
+    try {
+      const allMatches = document.querySelectorAll(step.selector);
+      if (allMatches.length === 1) return allMatches[0];
+
+      if (allMatches.length > 1 && step.label) {
+        const keywords = step.label
+          .replace(/^(Nhập|Bấm|Chọn)\s*/i, '')
+          .replace(/:.*$/, '')
+          .replace(/["'\[\]\(\)]/g, ' ')
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(w => w.length >= 3 && !['mục', 'trường', 'nút', 'vào', 'phần', 'tử'].includes(w));
+
+        for (const candidate of allMatches) {
+          const rowText = (
+            (candidate.placeholder || '') + ' ' +
+            (candidate.name || '') + ' ' +
+            (candidate.closest('.faq-form-row, .faq-form-group, .form-group, tr')?.innerText || '')
+          ).toLowerCase();
+
+          const matchCount = keywords.filter(kw => rowText.includes(kw)).length;
+          if (matchCount > 0) {
+            return candidate;
+          }
+        }
+
+        // Nếu không khớp từ khóa, trả về phần tử đầu tiên nếu chưa có cách phân biệt khác
+        return allMatches[0];
       }
-    }
+    } catch (e) {}
 
     return null;
   }

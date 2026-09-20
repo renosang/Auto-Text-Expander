@@ -54,7 +54,9 @@
 
       // 3. Nếu là phần tử đích (leaf element), đính kèm thuộc tính phân biệt rõ ràng
       if (isLeaf) {
-        if (node.name) {
+        if (node.placeholder) {
+          sig += `[placeholder="${CSS.escape(node.placeholder)}"]`;
+        } else if (node.name) {
           sig += `[name="${CSS.escape(node.name)}"]`;
         } else if (node.getAttribute?.('data-testid')) {
           sig += `[data-testid="${CSS.escape(node.getAttribute('data-testid'))}"]`;
@@ -62,6 +64,8 @@
           sig += `[data-qa="${CSS.escape(node.getAttribute('data-qa'))}"]`;
         } else if (node.getAttribute?.('data-id')) {
           sig += `[data-id="${CSS.escape(node.getAttribute('data-id'))}"]`;
+        } else if (node.getAttribute?.('aria-label')) {
+          sig += `[aria-label="${CSS.escape(node.getAttribute('aria-label'))}"]`;
         } else if (node.getAttribute?.('type') && ['submit', 'button', 'checkbox', 'radio'].includes(node.getAttribute('type'))) {
           sig += `[type="${CSS.escape(node.getAttribute('type'))}"]`;
         }
@@ -76,8 +80,19 @@
     let isTarget = true;
 
     while (curr && curr !== document.body && curr !== document.documentElement && pathSegments.length < 5) {
-      const sig = getNodeSignature(curr, isTarget);
+      let sig = getNodeSignature(curr, isTarget);
       if (sig) {
+        // Đính kèm :nth-of-type nếu phần tử cha có nhiều con cùng loại thẻ (ví dụ các hàng div.faq-form-row)
+        if (curr.parentElement) {
+          const sameTagSiblings = Array.from(curr.parentElement.children).filter(c => c.tagName === curr.tagName);
+          if (sameTagSiblings.length > 1) {
+            const siblingIndex = sameTagSiblings.indexOf(curr) + 1;
+            if (siblingIndex > 0) {
+              sig += `:nth-of-type(${siblingIndex})`;
+            }
+          }
+        }
+
         pathSegments.unshift(sig);
 
         // Kiểm tra xem đường dẫn hiện tại đã đủ để định vị DUY NHẤT 1 phần tử trên trang chưa
@@ -127,12 +142,16 @@
   // Lấy nhãn mô tả thân thiện của phần tử
   function getElementLabel(el) {
     if (!el) return 'Phần tử';
-    if (el.name) return `Trường [${el.name}]`;
     if (el.placeholder) return `Ô "${el.placeholder}"`;
-    const formGroup = el.closest('.form-group, .faq-form-group');
+    if (el.name) return `Trường [${el.name}]`;
+    const formGroup = el.closest('.form-group, .faq-form-group, .faq-form-row');
     if (formGroup) {
-      const label = formGroup.parentElement?.querySelector('.text-bold-600, label') || formGroup.querySelector('.text-bold-600, label');
-      if (label) return `Mục ${label.innerText.trim()}`;
+      const label = formGroup.querySelector('.text-bold-600, label, .form-label, .faq-form-label, [class*="label"]') ||
+                    formGroup.parentElement?.querySelector('.text-bold-600, label, .form-label');
+      if (label) {
+        const text = (label.innerText || label.textContent || '').trim();
+        if (text) return `Mục ${text}`;
+      }
     }
     const isEditor = el.isContentEditable || Boolean(el.closest?.('[contenteditable="true"], .slate-editable-area, .ql-editor'));
     if (isEditor) {
@@ -299,10 +318,12 @@
     const target = e.target;
     if (!target || target.closest('#ate-recorder-widget') || target.closest('.ate-macro-overlay')) return;
 
-    // Bỏ qua click vào ô input và vùng soạn thảo vì sự kiện input sẽ lo liệu
+    // Bỏ qua click vào ô input, textarea, select, option và vùng soạn thảo vì sự kiện input/change sẽ lo liệu
     if (
       target.tagName === 'INPUT' || 
       target.tagName === 'TEXTAREA' || 
+      target.tagName === 'SELECT' || 
+      target.tagName === 'OPTION' || 
       target.isContentEditable || 
       Boolean(target.closest?.('[contenteditable="true"], .ql-editor, [data-slate-editor="true"], .slate-editable-area'))
     ) return;
@@ -325,6 +346,43 @@
     });
 
     updateWidgetCounter();
+  }
+
+  function handleRecordChange(e) {
+    if (!isRecording) return;
+    const target = e.target;
+    if (!target || target.closest('#ate-recorder-widget') || target.closest('.ate-macro-overlay')) return;
+
+    if (target.tagName === 'SELECT') {
+      const selector = getSmartSelector(target);
+      if (!selector) return;
+
+      const selectedOpt = target.selectedOptions?.[0] || target.options?.[target.selectedIndex];
+      const optText = (selectedOpt?.text || selectedOpt?.innerText || selectedOpt?.textContent || '').trim();
+      const val = target.value || optText;
+      const displayVal = optText || val;
+      const label = getElementLabel(target);
+
+      const now = Date.now();
+      const delay = lastActionTime === 0 ? 200 : Math.min(now - lastActionTime, 1200);
+      lastActionTime = now;
+
+      const lastStep = recordedSteps[recordedSteps.length - 1];
+      if (lastStep && lastStep.selector === selector && (lastStep.type === 'input' || lastStep.type === 'select')) {
+        lastStep.value = displayVal;
+        lastStep.label = `Chọn ${label}: "${displayVal}"`;
+      } else {
+        recordedSteps.push({
+          id: 'step-' + Date.now(),
+          type: 'input',
+          selector,
+          value: displayVal,
+          label: `Chọn ${label}: "${displayVal}"`,
+          delay: Math.max(delay, 200)
+        });
+        updateWidgetCounter();
+      }
+    }
   }
 
   function handleMouseOver(e) {
@@ -352,6 +410,7 @@
 
     // Lắng nghe các sự kiện thao tác
     document.addEventListener('input', handleRecordInput, true);
+    document.addEventListener('change', handleRecordChange, true);
     document.addEventListener('click', handleRecordClick, true);
     document.addEventListener('mouseover', handleMouseOver, true);
     document.addEventListener('mouseout', handleMouseOut, true);
@@ -364,6 +423,7 @@
 
     // Gỡ lắng nghe
     document.removeEventListener('input', handleRecordInput, true);
+    document.removeEventListener('change', handleRecordChange, true);
     document.removeEventListener('click', handleRecordClick, true);
     document.removeEventListener('mouseover', handleMouseOver, true);
     document.removeEventListener('mouseout', handleMouseOut, true);
@@ -382,6 +442,7 @@
     isRecording = false;
     recordedSteps = [];
     document.removeEventListener('input', handleRecordInput, true);
+    document.removeEventListener('change', handleRecordChange, true);
     document.removeEventListener('click', handleRecordClick, true);
     document.removeEventListener('mouseover', handleMouseOver, true);
     document.removeEventListener('mouseout', handleMouseOut, true);
