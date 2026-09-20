@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Text Expander - Bảng Quản Lý Phím Tắt</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="../icons/icon48.png" alt="Logo" class="brand-logo">
+        <div class="brand-info">
+          <h1>Auto Text Expander</h1>
+          <span class="badge-version">v1.0.0 • Pro</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="snippets">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span class="nav-label">Danh Sách Phím Tắt</span>
+          <span class="badge-count" id="badge-total-snippets">0</span>
+        </button>
+
+        <button class="nav-item" data-tab="test-box">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span class="nav-label">Phòng Thử Nghiệm</span>
+        </button>
+
+        <button class="nav-item" data-tab="url-rules">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span class="nav-label">Bộ Lọc Website (URL)</span>
+        </button>
+
+        <button class="nav-item" data-tab="backup">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span class="nav-label">Sao Lưu & Khôi Phục</span>
+        </button>
+
+        <button class="nav-item" data-tab="settings">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+          <span class="nav-label">Cài Đặt Hệ Thống</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-switch-container">
+          <span class="theme-switch-label">Giao diện:</span>
+          <div class="theme-toggle-group">
+            <button type="button" class="btn-theme-toggle" id="theme-btn-light" title="Giao diện Sáng">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+              </svg>
+              <span>Sáng</span>
+            </button>
+            <button type="button" class="btn-theme-toggle active" id="theme-btn-dark" title="Giao diện Tối">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+              <span>Tối</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="status-indicator">
+          <span class="status-dot"></span>
+          <span class="status-text">Đang hoạt động</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+      <!-- TAB 1: SNIPPETS MANAGER -->
+      <section id="tab-snippets" class="tab-pane active">
+        <header class="section-header">
+          <div>
+            <h2>Quản Lý Từ Khóa Phím Tắt</h2>
+            <p class="subtitle">Thêm, chỉnh sửa nội dung văn bản hỗ trợ Markdown và đồng bộ tức thì trên mọi trang web.
+            </p>
+          </div>
+          <div class="header-actions">
+            <div class="search-box">
+              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="search-input" placeholder="Tìm phím tắt, nhãn, nội dung...">
+            </div>
+            <button class="btn btn-primary" id="btn-create-new">
+              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Tạo Phím Tắt Mới
+            </button>
+          </div>
+        </header>
+
+        <div class="snippets-grid-container">
+          <!-- Left: Snippets List -->
+          <div class="snippet-list-column">
+            <div class="list-header">
+              <span id="list-counter">Tất cả phím tắt</span>
+              <button class="btn-text" id="btn-sort-list">Sắp xếp: A-Z</button>
+            </div>
+            <div class="snippet-cards-list" id="snippet-cards-list">
+              <!-- Render via JS -->
+            </div>
+          </div>
+
+          <!-- Right: Snippet Editor Form -->
+          <div class="snippet-editor-column">
+            <div class="card editor-card">
+              <div class="card-header">
+                <h3 id="editor-title">Tạo Phím Tắt Mới</h3>
+                <div class="editor-actions">
+                  <button class="btn btn-ghost" id="btn-cancel-edit" style="display:none;">Hủy Bỏ</button>
+                  <button class="btn btn-danger-soft" id="btn-delete-snippet" style="display:none;">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Xóa
+                  </button>
+                  <button class="btn btn-primary" id="btn-save-snippet">
+                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Lưu Phím Tắt
+                  </button>
+                </div>
+              </div>
+
+              <div class="card-body form-body">
+                <input type="hidden" id="edit-snippet-id">
+
+                <div class="form-row two-cols">
+                  <div class="form-group">
+                    <label for="input-shortcut">
+                      Từ Khóa Kích Hoạt (Trigger Shortcut) <span class="required">*</span>
+                    </label>
+                    <div class="input-with-prefix">
+                      <input type="text" id="input-shortcut" placeholder="Ví dụ: :email hoặc /sig" autocomplete="off">
+                    </div>
+                    <span class="help-text">Nên dùng tiền tố như <code>:</code> hoặc <code>/</code> để tránh nhầm khi gõ
+                      văn bản thường.</span>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="input-label">Tên Gợi Nhớ (Mô tả)</label>
+                    <input type="text" id="input-label" placeholder="Ví dụ: Email công ty cá nhân">
+                    <span class="help-text">Tiêu đề phân loại phím tắt giúp tìm kiếm nhanh trong danh sách.</span>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <div class="content-header-bar">
+                    <label for="input-content" class="label-nowrap">
+                      Nội Dung Văn Bản (Hỗ trợ Markdown) <span class="required">*</span>
+                    </label>
+                    <!-- Markdown Quick Toolbar -->
+                    <div class="md-toolbar">
+                      <button type="button" class="btn-tool" data-md="bold" title="In đậm (**text**)"><b>B</b></button>
+                      <button type="button" class="btn-tool" data-md="italic"
+                        title="In nghiêng (*text*)"><i>I</i></button>
+                      <button type="button" class="btn-tool" data-md="heading" title="Tiêu đề (## Tiêu đề)">H</button>
+                      <button type="button" class="btn-tool" data-md="link" title="Chèn Link ([Tên](url))">🔗
+                        Link</button>
+                      <button type="button" class="btn-tool" data-md="code" title="Mã Code (`code`)">💻 Code</button>
+                      <button type="button" class="btn-tool" data-md="bullet" title="Danh sách">• List</button>
+                      <button type="button" class="btn-tool" data-md="table" title="Bảng">▦ Bảng</button>
+                    </div>
+                  </div>
+
+                  <div class="editor-tabs">
+                    <button type="button" class="tab-btn active" id="tab-write">Soạn Thảo (Markdown)</button>
+                    <button type="button" class="tab-btn" id="tab-preview">Xem Trước (Live Preview)</button>
+                  </div>
+
+                  <div class="tab-content-area">
+                    <textarea id="input-content" rows="9" placeholder="Nhập nội dung phím tắt tại đây..."></textarea>
+                    <div id="preview-container" class="preview-box" style="display: none;"></div>
+                  </div>
+                </div>
+
+                <div class="form-row switch-row">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="check-rich-text" checked>
+                    <span class="slider"></span>
+                  </label>
+                  <div class="switch-label">
+                    <strong>Tự động chuyển Markdown sang Rich Text (HTML) khi gõ</strong>
+                    <p class="help-text">Khi gõ trong Gmail, Notion, Google Docs hoặc trình soạn thảo phong phú, văn bản
+                      sẽ tự động chuyển thành in đậm, bảng, link đẹp mắt.</p>
+                  </div>
+                </div>
+
+                <!-- Live Quick Test Box inside Editor -->
+                <div class="editor-quick-test">
+                  <div class="quick-test-header">
+                    <div class="quick-test-title">
+                      <span class="lightning-icon">⚡</span>
+                      <strong>Gõ thử nghiệm trước khi lưu:</strong>
+                    </div>
+                    <button type="button" class="btn-text-sm" id="btn-clear-inline-test">Xóa ô test</button>
+                  </div>
+                  <input type="text" id="inline-test-input" class="inline-test-field"
+                    placeholder="Gõ thử từ khóa bạn vừa nhập ở trên vào ô này để kiểm tra...">
+                  <div id="inline-test-status" class="inline-test-status">Chưa gõ thử</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: TEST LAB (DEDICATED TESTING PLAYGROUND) -->
+      <section id="tab-test-box" class="tab-pane">
+        <header class="section-header">
+          <div>
+            <h2>Phòng Thử Nghiệm Phím Tắt</h2>
+            <p class="subtitle">Kiểm tra khả năng mở rộng của phím tắt trên cả ô nhập liệu tiêu chuẩn lẫn trình soạn
+              thảo phong phú (WYSIWYG Rich Text).</p>
+          </div>
+          <button class="btn btn-secondary" id="btn-clear-test-lab">Xóa Trắng Ô Thử Nghiệm</button>
+        </header>
+
+        <div class="test-lab-grid">
+          <div class="card test-card">
+            <div class="card-header">
+              <h3>1. Ô Nhập Tiêu Chuẩn (Input & Textarea)</h3>
+              <span class="badge-tag">Plain / Markdown</span>
+            </div>
+            <div class="card-body">
+              <p class="help-text">Kiểm tra khi gõ trên khung chat, thanh tìm kiếm hoặc form nhập liệu đơn giản.</p>
+              <div class="form-group">
+                <label>Ô gõ 1 dòng (Single-line Input):</label>
+                <input type="text" id="test-single-input" class="test-field"
+                  placeholder="Ví dụ: gõ :email hoặc :addr vào đây...">
+              </div>
+              <div class="form-group">
+                <label>Khung gõ nhiều dòng (Multi-line Textarea):</label>
+                <textarea id="test-multi-textarea" class="test-field" rows="6"
+                  placeholder="Gõ thử các phím tắt :meeting, :sig,... tại đây"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="card test-card">
+            <div class="card-header">
+              <h3>2. Trình Soạn Thảo Phong Phú (WYSIWYG)</h3>
+              <span class="badge-tag badge-accent">WYSIWYG Rich Text</span>
+            </div>
+            <div class="card-body">
+              <p class="help-text">Mô phỏng khung soạn thảo của Gmail, Notion, Slack, Docs. Markdown sẽ tự bung thành
+                chữ in đậm, link, danh sách.</p>
+              <div class="form-group">
+                <label>Khung Soạn Thảo Phong Phú (Rich Editor):</label>
+                <div id="test-rich-editor" class="test-field rich-editable" contenteditable="true"
+                  data-placeholder="Gõ thử :sig hoặc :meeting vào đây để thấy Markdown tự bung thành chữ in đậm, link đầy đủ...">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: URL RULES -->
+      <section id="tab-url-rules" class="tab-pane">
+        <header class="section-header">
+          <div>
+            <h2>Bộ Lọc Website (URL Rules)</h2>
+            <p class="subtitle">Chủ động kiểm soát những trang web nào extension được phép hoặc không được phép tự động
+              mở rộng từ khóa.</p>
+          </div>
+        </header>
+
+        <div class="url-rules-container">
+          <div class="card">
+            <div class="card-header">
+              <h3>Chế Độ Lọc Trang Web</h3>
+            </div>
+            <div class="card-body">
+              <div class="radio-group-boxes">
+                <label class="radio-box">
+                  <input type="radio" name="urlMode" value="blacklist" id="mode-blacklist" checked>
+                  <div class="radio-box-content">
+                    <strong>Chế Độ Blacklist (Danh Sách Chặn)</strong>
+                    <span>Hoạt động trên TẤT CẢ website, ngoại trừ những trang hoặc tên miền được liệt kê bên
+                      dưới.</span>
+                  </div>
+                </label>
+
+                <label class="radio-box">
+                  <input type="radio" name="urlMode" value="whitelist" id="mode-whitelist">
+                  <div class="radio-box-content">
+                    <strong>Chế Độ Whitelist (Danh Sách Cho Phép)</strong>
+                    <span>CHỈ hoạt động DUY NHẤT trên các trang hoặc tên miền được chỉ định bên dưới.</span>
+                  </div>
+                </label>
+              </div>
+
+              <hr class="divider">
+
+              <div class="add-rule-form">
+                <div class="form-group flex-1">
+                  <label for="input-new-rule">Thêm URL hoặc Tên Miền:</label>
+                  <div class="input-with-button">
+                    <input type="text" id="input-new-rule" placeholder="Ví dụ: mail.google.com hoặc *://facebook.com/*">
+                    <button class="btn btn-primary" id="btn-add-rule">Thêm Quy Tắc</button>
+                  </div>
+                  <span class="help-text">Hỗ trợ tên miền trực tiếp (<code>github.com</code>) hoặc ký tự đại diện
+                    wildcard (<code>*://domain.com/*</code>).</span>
+                </div>
+              </div>
+
+              <div class="rules-list-section">
+                <h4>Danh sách các URL hiện tại (<span id="rule-count">0</span>):</h4>
+                <div class="rules-tags-list" id="rules-tags-list">
+                  <!-- Render via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: IMPORT / EXPORT -->
+      <section id="tab-backup" class="tab-pane">
+        <header class="section-header">
+          <div>
+            <h2>Sao Lưu & Khôi Phục Dữ Liệu</h2>
+            <p class="subtitle">Xuất danh sách phím tắt để lưu trữ, hoặc chia sẻ sang máy tính khác dưới dạng JSON hoặc
+              CSV.</p>
+          </div>
+        </header>
+
+        <div class="backup-grid">
+          <!-- Export Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Xuất Dữ Liệu (Export)</h3>
+            </div>
+            <div class="card-body">
+              <p class="help-text">Tải toàn bộ danh sách phím tắt và cấu hình về máy tính cá nhân để lưu trữ an toàn.
+              </p>
+
+              <div class="export-options">
+                <div class="export-item">
+                  <div>
+                    <strong>Định dạng JSON (.json)</strong>
+                    <p class="help-text">Đầy đủ thông tin, hỗ trợ đầy đủ Markdown đa dòng và cấu hình cài đặt.</p>
+                  </div>
+                  <button class="btn btn-secondary" id="btn-export-json">Xuất JSON</button>
+                </div>
+
+                <div class="export-item">
+                  <div>
+                    <strong>Định dạng Excel / CSV (.csv)</strong>
+                    <p class="help-text">Dễ dàng mở và chỉnh sửa hàng loạt bằng Microsoft Excel hoặc Google Sheets.</p>
+                  </div>
+                  <button class="btn btn-secondary" id="btn-export-csv">Xuất CSV</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Import Card -->
+          <div class="card">
+            <div class="card-header">
+              <h3>Nhập Dữ Liệu (Import)</h3>
+            </div>
+            <div class="card-body">
+              <p class="help-text">Tải file <code>.json</code> hoặc <code>.csv</code> đã lưu trước đó vào extension.</p>
+
+              <div class="import-mode-selection">
+                <label class="radio-label">
+                  <input type="radio" name="importMode" value="merge" checked>
+                  <span><b>Hợp nhất (Merge):</b> Thêm các phím tắt mới vào danh sách hiện tại (giữ nguyên phím tắt
+                    cũ).</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="importMode" value="overwrite">
+                  <span><b>Ghi đè (Overwrite):</b> Thay thế toàn bộ danh sách cũ bằng dữ liệu trong file.</span>
+                </label>
+              </div>
+
+              <div class="file-dropzone" id="file-dropzone">
+                <input type="file" id="file-import" accept=".json, .csv" style="display:none;">
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p><b>Nhấp để chọn file</b> hoặc kéo thả file JSON/CSV vào đây</p>
+                <span class="file-info" id="file-chosen-name">Chưa chọn file nào</span>
+              </div>
+
+              <div class="import-action-bar">
+                <button class="btn btn-primary" id="btn-process-import" disabled>Bắt Đầu Nhập Dữ Liệu</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: SETTINGS -->
+      <section id="tab-settings" class="tab-pane">
+        <header class="section-header">
+          <div>
+            <h2>Cài Đặt Hoạt Động Chung</h2>
+            <p class="subtitle">Điều chỉnh phương thức kích hoạt phím tắt và trải nghiệm mở rộng văn bản.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-save-settings">Lưu Cấu Hình</button>
+        </header>
+
+        <div class="card">
+          <div class="card-body form-body">
+            <div class="form-group">
+              <label>Phương thức kích hoạt mở rộng (Expansion Trigger):</label>
+              <div class="radio-group-boxes">
+                <label class="radio-box">
+                  <input type="radio" name="triggerType" value="immediate" id="trigger-immediate" checked>
+                  <div class="radio-box-content">
+                    <strong>Kích hoạt tức thì (Ngay khi gõ xong ký tự cuối)</strong>
+                    <span>Tiện lợi nhất. Khi bạn vừa gõ xong phím tắt (ví dụ <code>:email</code>), nội dung sẽ lập tức
+                      bung ra.</span>
+                  </div>
+                </label>
+
+                <label class="radio-box">
+                  <input type="radio" name="triggerType" value="delimiter" id="trigger-delimiter">
+                  <div class="radio-box-content">
+                    <strong>Kích hoạt sau dấu phân cách (Phím Space, Enter hoặc Tab)</strong>
+                    <span>Văn bản chỉ mở rộng khi bạn gõ xong phím tắt và nhấn thêm phím Cách (Space) hoặc Enter.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-group">
+              <label>Chế độ giao diện (Appearance Theme):</label>
+              <div class="radio-group-boxes">
+                <label class="radio-box">
+                  <input type="radio" name="themeSetting" value="dark" id="theme-radio-dark" checked>
+                  <div class="radio-box-content">
+                    <strong>Giao diện Tối (Dark Theme - Độ tương phản cao)</strong>
+                    <span>Tông màu than chì obsidian sâu thẳm, chống mỏi mắt với viền nét và màu nhấn tím ánh xanh rực
+                      rỡ.</span>
+                  </div>
+                </label>
+
+                <label class="radio-box">
+                  <input type="radio" name="themeSetting" value="light" id="theme-radio-light">
+                  <div class="radio-box-content">
+                    <strong>Giao diện Sáng (Light Theme - Thanh lịch, sắc sảo)</strong>
+                    <span>Nền trắng tuyết tinh khôi, chữ đậm rõ nét, đổ bóng mềm và độ tương phản cao dễ đọc ban
+                      ngày.</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <hr class="divider">
+
+            <div class="form-row switch-row">
+              <label class="toggle-switch">
+                <input type="checkbox" id="check-global-enable" checked>
+                <span class="slider"></span>
+              </label>
+              <div class="switch-label">
+                <strong>Bật hoạt động Extension toàn hệ thống</strong>
+                <p class="help-text">Tắt công tắc này sẽ tạm dừng việc mở rộng từ khóa trên mọi trang web mà không làm
+                  mất phím tắt đã lưu.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="app-toast" class="app-toast"></div>
+
+  <!-- Scripts: Local Marked, Local DOMPurify, Options Logic -->
+  <script src="../lib/marked.min.js"></script>
+  <script src="../lib/purify.min.js"></script>
+  <script src="options.js"></script>
+</body>
+
+</html>

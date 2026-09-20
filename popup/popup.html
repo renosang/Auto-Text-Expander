@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Text Expander</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Top Header -->
+    <header class="popup-header">
+      <div class="header-brand">
+        <img src="../icons/icon32.png" alt="Logo" class="logo">
+        <div class="brand-text">
+          <span class="app-title">Auto Text Expander</span>
+          <span class="app-subtitle" id="site-display">Đang kiểm tra trang...</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" id="btn-toggle-theme" title="Đổi giao diện Sáng / Tối">
+          <svg id="popup-theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="popup-theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+        <button class="btn-icon" id="btn-open-options" title="Mở trang Cài đặt & Quản lý">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Site Specific Control Card -->
+    <div class="site-control-card">
+      <div class="site-status-left">
+        <div class="status-pulse" id="site-pulse"></div>
+        <div class="site-status-text">
+          <strong id="site-status-title">Hoạt động trên trang này</strong>
+          <span id="site-status-desc">Phím tắt tự động mở rộng</span>
+        </div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="toggle-site-active" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <!-- Quick Search Shortcuts -->
+    <div class="search-section">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="popup-search" placeholder="Tìm nhanh phím tắt..." autocomplete="off">
+      </div>
+    </div>
+
+    <!-- Snippets Quick List -->
+    <div class="quick-snippets-list" id="quick-snippets-list">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Bottom Footer -->
+    <footer class="popup-footer">
+      <div class="footer-stats">
+        <span id="total-count-label">0 phím tắt</span>
+      </div>
+      <button class="btn-manage" id="btn-manage-link">
+        <span>Mở Dashboard</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </footer>
+
+    <!-- Toast feedback in popup -->
+    <div class="popup-toast" id="popup-toast"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
