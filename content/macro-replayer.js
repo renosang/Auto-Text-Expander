@@ -23,7 +23,7 @@
       editor.focus();
     } catch (e) {}
 
-    // 1. Quill Editor
+    // 1. Quill Editor (Quill quản lý DOM độc lập không phụ thuộc React state)
     if (editor.classList?.contains('ql-editor')) {
       editor.innerHTML = `<p>${escapeHtml(newValue)}</p>`;
       try {
@@ -33,7 +33,9 @@
       return;
     }
 
-    // 2. Slate.js / Standard ContentEditable
+    // 2. Slate.js / React-Controlled ContentEditable:
+    // CỰC KỲ QUAN TRỌNG: Tuyệt đối KHÔNG gọi range.deleteContents() hoặc gán innerText trực tiếp
+    // vì việc tự ý xóa sửa DOM tree sẽ khiến React ném lỗi Invariant Violation và CRASH TRẮNG TRANG!
     const sel = window.getSelection();
     if (sel) {
       try {
@@ -44,7 +46,7 @@
       } catch (e) {}
     }
 
-    // Gửi sự kiện beforeinput (chuẩn để Slate.js nhận diện và cập nhật React internal state)
+    // Gửi sự kiện beforeinput chuẩn W3C Input Events Level 2
     try {
       editor.dispatchEvent(new InputEvent('beforeinput', {
         bubbles: true,
@@ -55,32 +57,10 @@
       }));
     } catch (e) {}
 
-    let execOk = false;
+    // Dùng execCommand('insertText') để Slate và React tiếp nhận văn bản an toàn 100%
     try {
-      execOk = document.execCommand('insertText', false, newValue);
-    } catch (e) {
-      execOk = false;
-    }
-
-    // Nếu execCommand không thành công hoặc editor chưa nhận nội dung
-    if (!execOk || !editor.innerText?.includes(newValue)) {
-      try {
-        if (sel && sel.rangeCount > 0) {
-          const range = sel.getRangeAt(0);
-          range.deleteContents();
-          const textNode = document.createTextNode(newValue);
-          range.insertNode(textNode);
-          range.setStartAfter(textNode);
-          range.collapse(true);
-          sel.removeAllRanges();
-          sel.addRange(range);
-        } else {
-          editor.innerText = newValue;
-        }
-      } catch (e) {
-        editor.innerText = newValue;
-      }
-    }
+      document.execCommand('insertText', false, newValue);
+    } catch (e) {}
 
     try {
       editor.dispatchEvent(new InputEvent('input', {
@@ -93,10 +73,6 @@
     } catch (e) {
       editor.dispatchEvent(new Event('input', { bubbles: true }));
     }
-
-    try {
-      editor.dispatchEvent(new Event('change', { bubbles: true }));
-    } catch (e) {}
   }
 
   // -------------------------------------------------------------
@@ -105,14 +81,27 @@
   function setElementValue(el, newValue) {
     if (!el) return;
 
-    // Kiểm tra nếu là ContentEditable hoặc Slate / Rich-text Editor
+    // 1. Hỗ trợ thẻ SELECT
+    if (el.tagName === 'SELECT') {
+      let matchedOpt = Array.from(el.options).find(o => o.value === newValue || o.text === newValue);
+      if (matchedOpt) {
+        el.value = matchedOpt.value;
+      } else {
+        el.value = newValue;
+      }
+      try {
+        el.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
+      } catch (e) {}
+      return;
+    }
+
+    // 2. Kiểm tra nếu là ContentEditable hoặc Slate / Rich-text Editor
     const isContentEditable = el.isContentEditable ||
                               el.getAttribute('contenteditable') === 'true' ||
                               Boolean(el.closest('[contenteditable="true"], [data-slate-editor="true"], .slate-editable-area, .ql-editor')) ||
-                              el.classList?.contains('slate-editable-area') ||
-                              (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA');
+                              el.classList?.contains('slate-editable-area');
 
-    if (isContentEditable) {
+    if (isContentEditable && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') {
       setContentEditableValue(el, newValue);
       return;
     }
@@ -207,7 +196,32 @@
       }
     } catch (e) {}
 
-    // 4. Nếu có name attribute trong selector (ví dụ: [name="subject"]) và là duy nhất
+    // 4. Tìm kiếm thông minh trong Modal (nếu selector nhắm vào phần tử modal)
+    if (step.selector.includes('modal')) {
+      try {
+        const modalContainer = document.querySelector('.faq-modal-body, .modal-body, [role="dialog"], .modal.show');
+        if (modalContainer) {
+          // Bóc tách selector con bên trong modal
+          const subSelector = step.selector
+            .replace(/.*(?:modal-body|modal)[^>]*>\s*/i, '')
+            .replace(TRANSIENT_CLASS_REGEX, '')
+            .trim();
+          if (subSelector) {
+            const foundInModal = modalContainer.querySelector(subSelector) ||
+                                 modalContainer.querySelector(subSelector.replace(/\s*>\s*/g, ' '));
+            if (foundInModal) return foundInModal;
+          }
+          // Thử tìm input/textarea tương ứng trong form-group của modal
+          const formGroupInModal = modalContainer.querySelector('.faq-form-group, .form-group');
+          if (formGroupInModal) {
+            const inputInModal = formGroupInModal.querySelector('input, textarea');
+            if (inputInModal) return inputInModal;
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 5. Nếu có name attribute trong selector (ví dụ: [name="subject"]) và là duy nhất
     const matchName = step.selector.match(/\[name="([^"]+)"\]/);
     if (matchName && matchName[1]) {
       const byName = document.querySelectorAll(`[name="${matchName[1]}"]`);
@@ -216,14 +230,14 @@
       }
     }
 
-    // 5. Nếu có ID trong selector (ví dụ: #ticket-title)
+    // 6. Nếu có ID trong selector (ví dụ: #ticket-title)
     const matchId = step.selector.match(/#([a-zA-Z0-9_-]+)/);
     if (matchId && matchId[1] && !matchId[1].match(/^react-select/)) {
       const byId = document.getElementById(matchId[1]);
       if (byId) return byId;
     }
 
-    // 6. Nếu là click button và có label text độc nhất
+    // 7. Nếu là click button và có label text độc nhất
     if (step.type === 'click' && step.label) {
       const cleanLabel = step.label.replace(/^Bấm Nút\s*["']?|["']?$/g, '').trim().toLowerCase();
       const buttons = document.querySelectorAll('button, a, [role="button"], input[type="submit"]');
@@ -238,7 +252,7 @@
       }
     }
 
-    // 7. Nếu là Quill hoặc Slate và trên trang CHỈ CÓ ĐÚNG 1 editor duy nhất
+    // 8. Nếu là Quill hoặc Slate và trên trang CHỈ CÓ ĐÚNG 1 editor duy nhất
     if (step.type === 'quill' || step.type === 'contenteditable') {
       const editors = document.querySelectorAll('.ql-editor, .slate-editable-area, [data-slate-editor="true"]');
       if (editors.length === 1) {
@@ -249,8 +263,8 @@
     return null;
   }
 
-  // Chờ đợi và thử lại tìm kiếm phần tử (cho phép DOM cập nhật/hiển thị)
-  async function findElementWithRetry(step, maxRetries = 3, interval = 200) {
+  // Chờ đợi và thử lại tìm kiếm phần tử (cho phép DOM / Modal / Animation cập nhật hiển thị lên đến 3 giây)
+  async function findElementWithRetry(step, maxRetries = 12, interval = 200) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const el = findElementWithFallback(step);
       if (el) return el;
@@ -333,7 +347,7 @@
         const step = steps[i];
         showProgressToast(macro.name, i + 1, steps.length, step.label || step.type);
 
-        const el = await findElementWithRetry(step, 3, 200);
+        const el = await findElementWithRetry(step, 12, 200);
 
         if (el) {
           try {
@@ -361,13 +375,31 @@
             setContentEditableValue(el, val || '');
           } else if (step.type === 'click') {
             try {
+              if (typeof el.focus === 'function') el.focus();
+            } catch (e) {}
+
+            try {
+              // Nếu là một button bên trong form nhưng chưa phải bước cuối cùng của macro
+              // (Ví dụ click mở modal, chọn tab), chặn browser tự động submit form làm tải lại trang (trắng trang)
+              const formParent = el.closest('form');
+              const isLastStep = i === steps.length - 1;
+              if (formParent && !isLastStep) {
+                const preventFormSubmit = (evt) => {
+                  evt.preventDefault();
+                  evt.stopPropagation();
+                };
+                formParent.addEventListener('submit', preventFormSubmit, { once: true, capture: true });
+                setTimeout(() => {
+                  formParent.removeEventListener('submit', preventFormSubmit, { capture: true });
+                }, 150);
+              }
+
               const opts = { bubbles: true, cancelable: true, view: window };
               el.dispatchEvent(new MouseEvent('mousedown', opts));
               el.dispatchEvent(new MouseEvent('mouseup', opts));
-              if (typeof el.focus === 'function') el.focus();
               el.click();
             } catch (e) {
-              el.click();
+              try { el.click(); } catch (err) {}
             }
           }
         } else {
