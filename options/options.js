@@ -825,12 +825,17 @@
     stepModalTitle.textContent = `Các Bước: ${macro.name} (${macro.steps.length} bước)`;
     stepModalList.innerHTML = '';
 
+    const scInput = document.getElementById('step-modal-shortcut');
+    const hkInput = document.getElementById('step-modal-hotkey');
+    if (scInput) scInput.value = macro.shortcut || '';
+    if (hkInput) hkInput.value = macro.hotkey || '';
+
     macro.steps.forEach((st, idx) => {
       const stepRow = document.createElement('div');
       stepRow.className = 'step-edit-card';
       stepRow.dataset.stepIndex = idx;
 
-      const isInput = st.type === 'input' || st.type === 'quill';
+      const isInput = st.type === 'input' || st.type === 'quill' || st.type === 'contenteditable';
 
       stepRow.innerHTML = `
         <div class="step-edit-left">
@@ -871,6 +876,15 @@
 
   async function saveStepModalChanges() {
     if (!currentEditingMacro) return;
+
+    const scInput = document.getElementById('step-modal-shortcut');
+    const hkInput = document.getElementById('step-modal-hotkey');
+    if (scInput && scInput.value.trim()) {
+      currentEditingMacro.shortcut = scInput.value.trim();
+    }
+    if (hkInput) {
+      currentEditingMacro.hotkey = hkInput.value.trim();
+    }
 
     const remainingStepCards = stepModalList.querySelectorAll('.step-edit-card');
     const newSteps = [];

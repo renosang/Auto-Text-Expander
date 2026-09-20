@@ -351,7 +351,17 @@
               <button type="button" class="btn-icon" id="btn-close-step-modal">✕</button>
             </div>
             <div class="ate-modal-body">
-              <div id="step-modal-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                <div>
+                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px; display:block;">Từ Khóa Phím Tắt (Gõ trong ô)</label>
+                  <input type="text" id="step-modal-shortcut" class="form-control" style="font-family:monospace; padding:6px 10px; font-size:13px;" placeholder="Ví dụ: :macro52">
+                </div>
+                <div>
+                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px; display:block;">Phím Nóng Bàn Phím</label>
+                  <input type="text" id="step-modal-hotkey" class="form-control" style="font-family:monospace; padding:6px 10px; font-size:13px;" placeholder="Ví dụ: Alt+1 hoặc Alt+S">
+                </div>
+              </div>
+              <div id="step-modal-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto;">
                 <!-- Step items injected by JS -->
               </div>
             </div>

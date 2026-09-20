@@ -404,38 +404,93 @@
   }
 
   // -------------------------------------------------------------
-  // GLOBAL HOTKEY TRIGGER LISTENER (e.g. Alt+1, Alt+S)
+  // CACHED MACROS & HOTKEY SYNCHRONIZER
   // -------------------------------------------------------------
-  document.addEventListener('keydown', async (e) => {
-    // Tạo chuỗi tổ hợp phím hiện tại (ví dụ: "Alt+1", "Ctrl+Shift+S")
-    const keys = [];
-    if (e.ctrlKey) keys.push('Ctrl');
-    if (e.altKey) keys.push('Alt');
-    if (e.shiftKey) keys.push('Shift');
-    if (e.metaKey) keys.push('Meta');
+  let cachedMacros = [];
 
-    // Chỉ bắt nếu có phím bổ trợ (Ctrl/Alt/Meta) để tránh nhầm với gõ phím thường
-    if (keys.length === 0) return;
-
-    // Không xử lý nếu phím nhấn chính là phím bổ trợ
-    if (['Control', 'Alt', 'Shift', 'Meta'].includes(e.key)) return;
-
-    keys.push(e.key.toUpperCase());
-    const pressedCombo = keys.join('+');
-
+  async function syncMacrosCache() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         const data = await chrome.storage.local.get(['macros']);
-        const macros = data.macros || [];
-        const matched = macros.find(m => m.enabled && m.hotkey && m.hotkey.trim().toUpperCase() === pressedCombo);
-
-        if (matched) {
-          e.preventDefault();
-          e.stopPropagation();
-          playMacro(matched);
+        if (data && Array.isArray(data.macros)) {
+          cachedMacros = data.macros;
         }
       }
-    } catch (err) {}
+    } catch (e) {}
+  }
+
+  syncMacrosCache();
+
+  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'local' && changes.macros && changes.macros.newValue) {
+        cachedMacros = changes.macros.newValue;
+      }
+    });
+  }
+
+  // Chuẩn hóa chuỗi hotkey để so sánh không phân biệt hoa/thường, khoảng trắng và thứ tự phím
+  function normalizeHotkeyStr(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .toLowerCase()
+      .replace(/\s+/g, '')
+      .replace(/control/g, 'ctrl')
+      .replace(/option/g, 'alt')
+      .replace(/command/g, 'meta')
+      .replace(/cmd/g, 'meta')
+      .split('+')
+      .map(part => part.replace(/^(digit|numpad|key)/, ''))
+      .sort()
+      .join('+');
+  }
+
+  function findMatchingMacroByKeyEvent(e) {
+    if (!cachedMacros || cachedMacros.length === 0) return null;
+
+    // Không bắt nếu phím nhấn chính là phím bổ trợ
+    if (['Control', 'Alt', 'Shift', 'Meta', 'AltGraph'].includes(e.key)) return null;
+
+    const modifiers = [];
+    if (e.ctrlKey) modifiers.push('ctrl');
+    if (e.altKey) modifiers.push('alt');
+    if (e.shiftKey) modifiers.push('shift');
+    if (e.metaKey) modifiers.push('meta');
+
+    // Hỗ trợ phím Function F1-F12 kể cả khi không bấm kèm phím bổ trợ
+    const isFKey = /^F([1-9]|1[0-2])$/i.test(e.key);
+    if (modifiers.length === 0 && !isFKey) return null;
+
+    const keyClean = (e.key || '').toLowerCase().replace(/^(digit|numpad|key)/, '');
+    const codeClean = e.code ? e.code.toLowerCase().replace(/^(digit|numpad|key)/, '') : '';
+
+    const combo1 = [...modifiers, keyClean].sort().join('+');
+    const combo2 = codeClean ? [...modifiers, codeClean].sort().join('+') : '';
+
+    for (const m of cachedMacros) {
+      if (!m.enabled || !m.hotkey) continue;
+      const normTarget = normalizeHotkeyStr(m.hotkey);
+      if (normTarget && (normTarget === combo1 || (combo2 && normTarget === combo2))) {
+        return m;
+      }
+    }
+    return null;
+  }
+
+  // Lắng nghe sự kiện bàn phím toàn cục trên window ở capture phase
+  window.addEventListener('keydown', async (e) => {
+    let matched = findMatchingMacroByKeyEvent(e);
+    if (!matched && cachedMacros.length === 0) {
+      await syncMacrosCache();
+      matched = findMatchingMacroByKeyEvent(e);
+    }
+
+    if (matched) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log(`[Auto Text Expander] Kích hoạt kịch bản bằng phím nóng "${matched.hotkey}": ${matched.name}`);
+      playMacro(matched);
+    }
   }, true);
 
   // Lắng nghe thông điệp từ popup hoặc background
