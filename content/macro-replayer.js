@@ -165,99 +165,85 @@
   const TRANSIENT_CLASS_REGEX = /\.(focused|is-focused|has-focus|active|is-active|open|is-open|opened|show|showing|selected|is-selected|hover|focus|disabled|loading|dirty|touched|valid|invalid)\b/gi;
 
   // -------------------------------------------------------------
-  // ELEMENT FINDER VỚI SMART FALLBACK
+  // ELEMENT FINDER VỚI SMART FALLBACK (CHÍNH XÁC CAO - KHÔNG NHẬP NHẦM)
   // -------------------------------------------------------------
   function findElementWithFallback(step) {
-    if (!step) return null;
+    if (!step || !step.selector) return null;
 
     // 1. Thử trực tiếp bằng selector nguyên bản
-    if (step.selector) {
-      try {
-        const found = document.querySelector(step.selector);
+    try {
+      const found = document.querySelector(step.selector);
+      if (found) return found;
+    } catch (e) {}
+
+    // 2. Thử loại bỏ các dynamic state classes khỏi selector nhưng BẢO TOÀN toàn bộ chuỗi phân cấp (Hierarchy)
+    // Ví dụ: .searchable-brand-input-box.focused -> .searchable-brand-input-box
+    try {
+      const cleanedSelector = step.selector
+        .replace(TRANSIENT_CLASS_REGEX, '')
+        .replace(/\s*>\s*>\s*/g, ' > ')
+        .replace(/>\s*$/g, '')
+        .trim();
+
+      if (cleanedSelector && cleanedSelector !== step.selector) {
+        const found = document.querySelector(cleanedSelector);
         if (found) return found;
-      } catch (e) {}
+      }
+    } catch (e) {}
 
-      // 2. Thử loại bỏ các dynamic state classes khỏi selector
-      // Ví dụ: .searchable-brand-input-box.focused -> .searchable-brand-input-box
-      try {
-        const cleanedSelector = step.selector
-          .replace(TRANSIENT_CLASS_REGEX, '')
-          .replace(/\s*>\s*>\s*/g, ' > ')
-          .replace(/>\s*$/g, '')
-          .trim();
+    // 3. Thử tìm bằng quan hệ phân cấp tổ tiên (Ancestor Scoped)
+    // Thay dấu > con trực tiếp bằng dấu cách (descendant) để tránh bị trượt nếu web chèn thêm thẻ span/div bọc ngoài
+    try {
+      const descendantSelector = step.selector
+        .replace(TRANSIENT_CLASS_REGEX, '')
+        .replace(/\s*>\s*/g, ' ')
+        .trim();
 
-        if (cleanedSelector && cleanedSelector !== step.selector) {
-          const found = document.querySelector(cleanedSelector);
-          if (found) return found;
+      if (descendantSelector && descendantSelector !== step.selector) {
+        const matches = document.querySelectorAll(descendantSelector);
+        if (matches.length === 1) {
+          return matches[0];
         }
-      } catch (e) {}
+      }
+    } catch (e) {}
 
-      // 3. Thử tìm bằng phần tử lá cuối cùng trong selector (Leaf element)
-      // Ví dụ: "div.faq-form-group > ... > input.searchable-brand-inner-input" -> "input.searchable-brand-inner-input"
-      try {
-        const segments = step.selector.split(/\s*>\s*/).map(s => s.trim()).filter(Boolean);
-        if (segments.length > 1) {
-          let lastPart = segments[segments.length - 1];
-          lastPart = lastPart.replace(TRANSIENT_CLASS_REGEX, '').trim();
-          if (lastPart) {
-            const matches = document.querySelectorAll(lastPart);
-            if (matches.length === 1) {
-              return matches[0];
-            } else if (matches.length > 1) {
-              // Thử kết hợp với phần tử gốc đầu tiên (top container)
-              const firstPart = segments[0].replace(TRANSIENT_CLASS_REGEX, '').trim();
-              try {
-                const scoped = document.querySelector(`${firstPart} ${lastPart}`);
-                if (scoped) return scoped;
-              } catch (e) {}
-
-              // Hoặc ưu tiên phần tử đang hiển thị trên màn hình
-              for (const m of matches) {
-                if (m.offsetParent !== null || m.offsetWidth > 0 || m.offsetHeight > 0) return m;
-              }
-              return matches[0];
-            }
-          }
-        }
-      } catch (e) {}
-    }
-
-    // 4. Thử tìm theo name
-    const matchName = step.selector?.match(/\[name="([^"]+)"\]/);
+    // 4. Nếu có name attribute trong selector (ví dụ: [name="subject"]) và là duy nhất
+    const matchName = step.selector.match(/\[name="([^"]+)"\]/);
     if (matchName && matchName[1]) {
-      const el = document.querySelector(`[name="${matchName[1]}"]`);
-      if (el) return el;
-    }
-
-    // 5. Thử tìm theo placeholder hoặc label đã lưu
-    if (step.label) {
-      const matchPlaceholder = step.label.match(/Ô\s*["']([^"']+)["']/);
-      if (matchPlaceholder && matchPlaceholder[1]) {
-        const el = document.querySelector(`[placeholder="${matchPlaceholder[1]}"]`);
-        if (el) return el;
-      }
-      const matchField = step.label.match(/Trường\s*\[([^\]]+)\]/);
-      if (matchField && matchField[1]) {
-        const el = document.querySelector(`[name="${matchField[1]}"]`);
-        if (el) return el;
+      const byName = document.querySelectorAll(`[name="${matchName[1]}"]`);
+      if (byName.length === 1) {
+        return byName[0];
       }
     }
 
-    // 6. Nếu là click button và có text
+    // 5. Nếu có ID trong selector (ví dụ: #ticket-title)
+    const matchId = step.selector.match(/#([a-zA-Z0-9_-]+)/);
+    if (matchId && matchId[1] && !matchId[1].match(/^react-select/)) {
+      const byId = document.getElementById(matchId[1]);
+      if (byId) return byId;
+    }
+
+    // 6. Nếu là click button và có label text độc nhất
     if (step.type === 'click' && step.label) {
       const cleanLabel = step.label.replace(/^Bấm Nút\s*["']?|["']?$/g, '').trim().toLowerCase();
       const buttons = document.querySelectorAll('button, a, [role="button"], input[type="submit"]');
+      const matched = [];
       for (const btn of buttons) {
         if (btn.innerText && btn.innerText.trim().toLowerCase().includes(cleanLabel)) {
-          return btn;
+          matched.push(btn);
         }
+      }
+      if (matched.length === 1) {
+        return matched[0];
       }
     }
 
-    // 7. Nếu là Quill Editor
-    if (step.type === 'quill') {
-      const ql = document.querySelector('.ql-editor');
-      if (ql) return ql;
+    // 7. Nếu là Quill hoặc Slate và trên trang CHỈ CÓ ĐÚNG 1 editor duy nhất
+    if (step.type === 'quill' || step.type === 'contenteditable') {
+      const editors = document.querySelectorAll('.ql-editor, .slate-editable-area, [data-slate-editor="true"]');
+      if (editors.length === 1) {
+        return editors[0];
+      }
     }
 
     return null;

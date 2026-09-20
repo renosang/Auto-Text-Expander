@@ -28,126 +28,100 @@
   }
 
   // -------------------------------------------------------------
-  // SMART SELECTOR GENERATOR
+  // HIGH-PRECISION SMART SELECTOR GENERATOR
   // -------------------------------------------------------------
   function getSmartSelector(el) {
     if (!el || el === document.body || el === document.documentElement) return null;
 
-    // 1. Kiểm tra thuộc tính name (chuẩn xác cho form inputs)
-    if (el.name) {
-      const tag = el.tagName.toLowerCase();
-      const selector = `${tag}[name="${el.name}"]`;
-      if (document.querySelectorAll(selector).length === 1) {
-        return selector;
+    // Hàm lấy chuỗi định danh chính xác của 1 node (Tag + ID + Toàn bộ Class ổn định + Thuộc tính phân biệt)
+    function getNodeSignature(node, isLeaf = false) {
+      if (!node || node === document.body || node === document.documentElement) return '';
+      const tag = node.tagName.toLowerCase();
+      let sig = tag;
+
+      // 1. Ghi nhớ ID nếu có (bỏ qua ID sinh ngẫu nhiên)
+      if (node.id && !node.id.match(/^react-select-|^[a-z0-9]{10,}/i)) {
+        sig += `#${CSS.escape(node.id)}`;
       }
-    }
 
-    // 2. Kiểm tra ID nếu không phải là ID ngẫu nhiên động (như react-select-15-input)
-    if (el.id && !el.id.match(/^react-select-|^[a-z0-9]{8,}/i)) {
-      const selector = `#${CSS.escape(el.id)}`;
-      if (document.querySelectorAll(selector).length === 1) {
-        return selector;
-      }
-    }
-
-    // 3. Kiểm tra Quill, Slate Editor hoặc ContentEditable
-    if (el.classList && el.classList.contains('ql-editor')) {
-      return '.ql-editor';
-    }
-    if (el.closest?.('.ql-editor')) {
-      return '.ql-editor';
-    }
-    if (el.classList && el.classList.contains('slate-editable-area')) {
-      return '.slate-editable-area';
-    }
-    if (el.closest?.('.slate-editable-area')) {
-      return '.slate-editable-area';
-    }
-    if (el.closest?.('[data-slate-editor="true"]')) {
-      return '[data-slate-editor="true"]';
-    }
-
-    // 4. Kiểm tra data attributes (data-testid, data-id, data-action, data-qa)
-    for (const attr of ['data-testid', 'data-id', 'data-action', 'data-qa']) {
-      if (el.getAttribute && el.getAttribute(attr)) {
-        const selector = `[${attr}="${CSS.escape(el.getAttribute(attr))}"]`;
-        if (document.querySelectorAll(selector).length === 1) return selector;
-      }
-    }
-
-    // 5. Kiểm tra class độc nhất của chính phần tử (loại trừ các class trạng thái như .focused, .active)
-    if (el.className && typeof el.className === 'string') {
-      const elTag = el.tagName.toLowerCase();
-      const cleanElClasses = Array.from(el.classList).filter(isStableClass);
-
-      for (const cls of cleanElClasses) {
-        const sel = `${elTag}.${CSS.escape(cls)}`;
-        try {
-          if (document.querySelectorAll(sel).length === 1) {
-            return sel;
-          }
-        } catch (e) {}
-      }
-      if (cleanElClasses.length >= 2) {
-        const sel = `${elTag}.${cleanElClasses.slice(0, 2).map(c => CSS.escape(c)).join('.')}`;
-        try {
-          if (document.querySelectorAll(sel).length === 1) {
-            return sel;
-          }
-        } catch (e) {}
-      }
-    }
-
-    // 6. Kiểm tra nếu là Button có class ổn định
-    if (el.tagName === 'BUTTON' || el.getAttribute('role') === 'button' || el.classList?.contains('btn')) {
-      const cleanClasses = Array.from(el.classList || []).filter(isStableClass).slice(0, 2);
-      const btnClass = cleanClasses.length > 0 ? '.' + cleanClasses.map(c => CSS.escape(c)).join('.') : '';
-      const sel = `${el.tagName.toLowerCase()}${btnClass}`;
-      try {
-        if (document.querySelectorAll(sel).length === 1) return sel;
-      } catch (e) {}
-    }
-
-    // 7. Kiểm tra cấu trúc form-group với nhãn (Label)
-    const formGroup = el.closest('.form-group');
-    if (formGroup) {
-      const label = formGroup.parentElement?.querySelector('.text-bold-600, label');
-      if (label && el.name) {
-        return `${el.tagName.toLowerCase()}[name="${el.name}"]`;
-      }
-    }
-
-    // 8. Fallback: Path selector ngắn gọn, lọc sạch các class trạng thái tạm thời (transient state)
-    let path = [];
-    let curr = el;
-    while (curr && curr !== document.body && path.length < 4) {
-      let segment = curr.tagName.toLowerCase();
-      if (curr.id && !curr.id.match(/^react-select|^[a-z0-9]{8,}/i)) {
-        segment += `#${CSS.escape(curr.id)}`;
-        path.unshift(segment);
-        break;
-      } else if (curr.className && typeof curr.className === 'string') {
-        const cleanClasses = Array.from(curr.classList)
-          .filter(isStableClass)
-          .slice(0, 2);
+      // 2. Ghi nhớ toàn bộ class ổn định (loại trừ các class tạm thời như focused, active)
+      if (node.className && typeof node.className === 'string') {
+        const cleanClasses = Array.from(node.classList).filter(isStableClass);
         if (cleanClasses.length > 0) {
-          segment += '.' + cleanClasses.map(c => CSS.escape(c)).join('.');
+          sig += '.' + cleanClasses.map(c => CSS.escape(c)).join('.');
         }
       }
-      path.unshift(segment);
 
-      // Thử xem path hiện tại đã đủ để chọn duy nhất chưa để dừng sớm
-      try {
-        const currentPathSelector = path.join(' > ');
-        if (document.querySelectorAll(currentPathSelector).length === 1) {
-          return currentPathSelector;
+      // 3. Nếu là phần tử đích (leaf element), đính kèm thuộc tính phân biệt rõ ràng
+      if (isLeaf) {
+        if (node.name) {
+          sig += `[name="${CSS.escape(node.name)}"]`;
+        } else if (node.getAttribute?.('data-testid')) {
+          sig += `[data-testid="${CSS.escape(node.getAttribute('data-testid'))}"]`;
+        } else if (node.getAttribute?.('data-qa')) {
+          sig += `[data-qa="${CSS.escape(node.getAttribute('data-qa'))}"]`;
+        } else if (node.getAttribute?.('data-id')) {
+          sig += `[data-id="${CSS.escape(node.getAttribute('data-id'))}"]`;
+        } else if (node.getAttribute?.('type') && ['submit', 'button', 'checkbox', 'radio'].includes(node.getAttribute('type'))) {
+          sig += `[type="${CSS.escape(node.getAttribute('type'))}"]`;
         }
-      } catch (e) {}
+      }
 
+      return sig;
+    }
+
+    // Xây dựng chuỗi phân cấp chính xác từ phần tử đích lên các tầng cha (Container, Form, Section)
+    let pathSegments = [];
+    let curr = el;
+    let isTarget = true;
+
+    while (curr && curr !== document.body && curr !== document.documentElement && pathSegments.length < 5) {
+      const sig = getNodeSignature(curr, isTarget);
+      if (sig) {
+        pathSegments.unshift(sig);
+
+        // Kiểm tra xem đường dẫn hiện tại đã đủ để định vị DUY NHẤT 1 phần tử trên trang chưa
+        const currentPath = pathSegments.join(' > ');
+        try {
+          const matched = document.querySelectorAll(currentPath);
+          if (matched.length === 1 && matched[0] === el) {
+            return currentPath;
+          }
+        } catch (e) {}
+
+        // Nếu gặp thẻ cha có ID độc nhất, neo vào ID đó và dừng lại
+        if (!isTarget && curr.id && !curr.id.match(/^react-select-|^[a-z0-9]{10,}/i)) {
+          break;
+        }
+      }
+
+      isTarget = false;
       curr = curr.parentElement;
     }
 
-    return path.join(' > ');
+    // Nếu sau khi lên tới 5 cấp cha mà vẫn có phần tử trùng (ví dụ danh sách nhiều item giống hệt nhau)
+    const fullPath = pathSegments.join(' > ');
+    try {
+      const allFound = document.querySelectorAll(fullPath);
+      if (allFound.length > 1) {
+        for (let idx = 0; idx < allFound.length; idx++) {
+          if (allFound[idx] === el) {
+            const parent = el.parentElement;
+            if (parent) {
+              const sameTagSiblings = Array.from(parent.children).filter(c => c.tagName === el.tagName);
+              const siblingIndex = sameTagSiblings.indexOf(el) + 1;
+              if (siblingIndex > 0) {
+                pathSegments[pathSegments.length - 1] += `:nth-of-type(${siblingIndex})`;
+                return pathSegments.join(' > ');
+              }
+            }
+            break;
+          }
+        }
+      }
+    } catch (e) {}
+
+    return fullPath || el.tagName.toLowerCase();
   }
 
   // Lấy nhãn mô tả thân thiện của phần tử
