@@ -5,11 +5,117 @@
   let isPlaying = false;
   let progressToastEl = null;
 
+  function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // -------------------------------------------------------------
+  // CONTENTEDITABLE / SLATE / QUILL / RICH-TEXT SETTER
+  // -------------------------------------------------------------
+  function setContentEditableValue(el, newValue) {
+    if (!el) return;
+
+    const editor = el.closest('[contenteditable="true"], [data-slate-editor="true"], .slate-editable-area, .ql-editor') || el;
+    try {
+      editor.focus();
+    } catch (e) {}
+
+    // 1. Quill Editor
+    if (editor.classList?.contains('ql-editor')) {
+      editor.innerHTML = `<p>${escapeHtml(newValue)}</p>`;
+      try {
+        editor.dispatchEvent(new Event('input', { bubbles: true }));
+        editor.dispatchEvent(new Event('change', { bubbles: true }));
+      } catch (e) {}
+      return;
+    }
+
+    // 2. Slate.js / Standard ContentEditable
+    const sel = window.getSelection();
+    if (sel) {
+      try {
+        const range = document.createRange();
+        range.selectNodeContents(editor);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } catch (e) {}
+    }
+
+    // Gửi sự kiện beforeinput (chuẩn để Slate.js nhận diện và cập nhật React internal state)
+    try {
+      editor.dispatchEvent(new InputEvent('beforeinput', {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        inputType: 'insertText',
+        data: newValue
+      }));
+    } catch (e) {}
+
+    let execOk = false;
+    try {
+      execOk = document.execCommand('insertText', false, newValue);
+    } catch (e) {
+      execOk = false;
+    }
+
+    // Nếu execCommand không thành công hoặc editor chưa nhận nội dung
+    if (!execOk || !editor.innerText?.includes(newValue)) {
+      try {
+        if (sel && sel.rangeCount > 0) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          const textNode = document.createTextNode(newValue);
+          range.insertNode(textNode);
+          range.setStartAfter(textNode);
+          range.collapse(true);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          editor.innerText = newValue;
+        }
+      } catch (e) {
+        editor.innerText = newValue;
+      }
+    }
+
+    try {
+      editor.dispatchEvent(new InputEvent('input', {
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        inputType: 'insertText',
+        data: newValue
+      }));
+    } catch (e) {
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    try {
+      editor.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (e) {}
+  }
+
   // -------------------------------------------------------------
   // REACT / VUE COMPATIBLE VALUE SETTER
   // -------------------------------------------------------------
   function setElementValue(el, newValue) {
     if (!el) return;
+
+    // Kiểm tra nếu là ContentEditable hoặc Slate / Rich-text Editor
+    const isContentEditable = el.isContentEditable ||
+                              el.getAttribute('contenteditable') === 'true' ||
+                              Boolean(el.closest('[contenteditable="true"], [data-slate-editor="true"], .slate-editable-area, .ql-editor')) ||
+                              el.classList?.contains('slate-editable-area') ||
+                              (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA');
+
+    if (isContentEditable) {
+      setContentEditableValue(el, newValue);
+      return;
+    }
 
     const isTextarea = el.tagName === 'TEXTAREA';
     const prototype = isTextarea ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
@@ -218,13 +324,6 @@
     }
   }
 
-  function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
   // -------------------------------------------------------------
   // EXECUTE MACRO SEQUENCE
   // -------------------------------------------------------------
@@ -255,17 +354,31 @@
             el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
           } catch (e) {}
 
-          if (step.type === 'input') {
-            setElementValue(el, step.value || '');
+          let val = step.value;
+          // Tự động phục hồi giá trị nếu bị undefined khi ghi phím tắt hoặc contenteditable
+          if (val === undefined || val === null || val === 'undefined' || val === '') {
+            const matchButton = step.label?.match(/Nút\s*["']([^"']+)["']/i);
+            if (matchButton && matchButton[1] && matchButton[1] !== 'undefined') {
+              val = matchButton[1];
+            } else {
+              const allQuotes = Array.from(step.label?.matchAll(/["']([^"']+)["']/g) || []).map(m => m[1]);
+              const validQuote = allQuotes.find(q => q && q !== 'undefined');
+              if (validQuote) {
+                val = validQuote;
+              }
+            }
+          }
+
+          if (step.type === 'input' || step.type === 'contenteditable') {
+            setElementValue(el, val || '');
           } else if (step.type === 'quill') {
-            el.focus();
-            el.innerHTML = step.value || '';
-            el.dispatchEvent(new Event('input', { bubbles: true }));
+            setContentEditableValue(el, val || '');
           } else if (step.type === 'click') {
             try {
               const opts = { bubbles: true, cancelable: true, view: window };
               el.dispatchEvent(new MouseEvent('mousedown', opts));
               el.dispatchEvent(new MouseEvent('mouseup', opts));
+              if (typeof el.focus === 'function') el.focus();
               el.click();
             } catch (e) {
               el.click();

@@ -50,13 +50,21 @@
       }
     }
 
-    // 3. Kiểm tra Quill Editor
+    // 3. Kiểm tra Quill, Slate Editor hoặc ContentEditable
     if (el.classList && el.classList.contains('ql-editor')) {
       return '.ql-editor';
     }
-    const qlParent = el.closest('.ql-editor');
-    if (qlParent) {
+    if (el.closest?.('.ql-editor')) {
       return '.ql-editor';
+    }
+    if (el.classList && el.classList.contains('slate-editable-area')) {
+      return '.slate-editable-area';
+    }
+    if (el.closest?.('.slate-editable-area')) {
+      return '.slate-editable-area';
+    }
+    if (el.closest?.('[data-slate-editor="true"]')) {
+      return '[data-slate-editor="true"]';
     }
 
     // 4. Kiểm tra data attributes (data-testid, data-id, data-action, data-qa)
@@ -147,10 +155,18 @@
     if (!el) return 'Phần tử';
     if (el.name) return `Trường [${el.name}]`;
     if (el.placeholder) return `Ô "${el.placeholder}"`;
-    const label = el.closest('.form-group')?.parentElement?.querySelector('.text-bold-600, label');
-    if (label) return `Mục ${label.innerText.trim()}`;
+    const formGroup = el.closest('.form-group, .faq-form-group');
+    if (formGroup) {
+      const label = formGroup.parentElement?.querySelector('.text-bold-600, label') || formGroup.querySelector('.text-bold-600, label');
+      if (label) return `Mục ${label.innerText.trim()}`;
+    }
+    const isEditor = el.isContentEditable || Boolean(el.closest?.('[contenteditable="true"], .slate-editable-area, .ql-editor'));
+    if (isEditor) {
+      return 'Khung soạn thảo';
+    }
+    const isButtonLike = el.tagName === 'BUTTON' || el.getAttribute('role') === 'button' || el.classList?.contains('btn');
     const text = el.innerText?.trim();
-    if (text && text.length < 25) return `Nút "${text}"`;
+    if (isButtonLike && text && text.length < 25) return `Nút "${text}"`;
     return el.tagName.toLowerCase();
   }
 
@@ -250,7 +266,15 @@
     const target = e.target;
     if (!target || target.closest('#ate-recorder-widget') || target.closest('.ate-macro-overlay')) return;
 
-    const selector = getSmartSelector(target);
+    // Nhận diện vùng soạn thảo (Slate.js, Quill, ContentEditable)
+    const isEditor = target.isContentEditable || 
+                     Boolean(target.closest?.('[contenteditable="true"], .ql-editor, [data-slate-editor="true"], .slate-editable-area'));
+    const editorRoot = isEditor 
+      ? (target.closest?.('[contenteditable="true"], .ql-editor, [data-slate-editor="true"], .slate-editable-area') || target) 
+      : null;
+
+    const targetForSelector = editorRoot || target;
+    const selector = getSmartSelector(targetForSelector);
     if (!selector) return;
 
     clearTimeout(inputDebounceTimer);
@@ -259,18 +283,33 @@
       const delay = lastActionTime === 0 ? 150 : Math.min(now - lastActionTime, 1200);
       lastActionTime = now;
 
-      const isQuill = target.classList?.contains('ql-editor') || Boolean(target.closest('.ql-editor'));
-      const value = isQuill ? (target.closest('.ql-editor') || target).innerHTML : target.value;
-      const label = getElementLabel(target);
+      let value = '';
+      let stepType = 'input';
 
-      // Nếu thao tác trước đó cùng selector input thì cập nhật giá trị mới nhất thay vì tạo bước thừa
+      if (editorRoot) {
+        if (editorRoot.classList?.contains('ql-editor')) {
+          stepType = 'quill';
+          value = editorRoot.innerHTML;
+        } else {
+          stepType = 'contenteditable';
+          value = editorRoot.innerText || editorRoot.textContent || '';
+        }
+      } else {
+        stepType = 'input';
+        value = target.value || '';
+      }
+
+      const label = getElementLabel(targetForSelector);
+
+      // Nếu thao tác trước đó cùng selector input/editor thì cập nhật giá trị mới nhất thay vì tạo bước thừa
       const lastStep = recordedSteps[recordedSteps.length - 1];
-      if (lastStep && lastStep.selector === selector && (lastStep.type === 'input' || lastStep.type === 'quill')) {
+      if (lastStep && lastStep.selector === selector && (lastStep.type === 'input' || lastStep.type === 'quill' || lastStep.type === 'contenteditable')) {
         lastStep.value = value;
+        lastStep.label = `Nhập ${label}: "${typeof value === 'string' && value.length > 25 ? value.slice(0, 25) + '...' : value}"`;
       } else {
         recordedSteps.push({
           id: 'step-' + Date.now(),
-          type: isQuill ? 'quill' : 'input',
+          type: stepType,
           selector,
           value,
           label: `Nhập ${label}: "${typeof value === 'string' && value.length > 25 ? value.slice(0, 25) + '...' : value}"`,
@@ -286,8 +325,13 @@
     const target = e.target;
     if (!target || target.closest('#ate-recorder-widget') || target.closest('.ate-macro-overlay')) return;
 
-    // Bỏ qua click vào ô input vì sự kiện input sẽ lo liệu
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+    // Bỏ qua click vào ô input và vùng soạn thảo vì sự kiện input sẽ lo liệu
+    if (
+      target.tagName === 'INPUT' || 
+      target.tagName === 'TEXTAREA' || 
+      target.isContentEditable || 
+      Boolean(target.closest?.('[contenteditable="true"], .ql-editor, [data-slate-editor="true"], .slate-editable-area'))
+    ) return;
 
     const selector = getSmartSelector(target);
     if (!selector) return;
