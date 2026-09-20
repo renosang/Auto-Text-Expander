@@ -42,6 +42,8 @@
   ];
 
   let snippets = [];
+  let macros = [];
+  let currentEditingMacro = null;
   let settings = {
     enabled: true,
     urlMode: 'blacklist',
@@ -91,6 +93,17 @@
   const testMultiTextarea = document.getElementById('test-multi-textarea');
   const testRichEditor = document.getElementById('test-rich-editor');
 
+  // Macro Automation Elements
+  const badgeTotalMacros = document.getElementById('badge-total-macros');
+  const macrosListContainer = document.getElementById('macros-list-container');
+  const btnCreateMacroGuide = document.getElementById('btn-create-macro-guide');
+  const macroStepModal = document.getElementById('macro-step-modal');
+  const stepModalTitle = document.getElementById('step-modal-title');
+  const stepModalList = document.getElementById('step-modal-list');
+  const btnCloseStepModal = document.getElementById('btn-close-step-modal');
+  const btnCancelStepModal = document.getElementById('btn-cancel-step-modal');
+  const btnSaveStepModal = document.getElementById('btn-save-step-modal');
+
   // URL Rules Elements
   const modeBlacklist = document.getElementById('mode-blacklist');
   const modeWhitelist = document.getElementById('mode-whitelist');
@@ -128,22 +141,27 @@
     setupMarkdownToolbar();
     setupInlineTest();
     setupTestLab();
+    setupMacrosTab();
     setupUrlRules();
     setupBackup();
     setupSettingsTab();
     renderSnippets();
+    renderMacrosList();
     renderUrlRules();
   }
 
   async function loadData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const data = await chrome.storage.local.get(['snippets', 'settings']);
+        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros']);
         if (data.snippets && Array.isArray(data.snippets) && data.snippets.length > 0) {
           snippets = data.snippets;
         } else {
           snippets = [...DEFAULT_SNIPPETS];
           await chrome.storage.local.set({ snippets });
+        }
+        if (data.macros && Array.isArray(data.macros)) {
+          macros = data.macros;
         }
         if (data.settings) {
           settings = { ...settings, ...data.settings };
@@ -151,12 +169,16 @@
       } else {
         // Fallback localStorage cho môi trường preview/test ngoài extension
         const localSnippets = localStorage.getItem('ate_snippets');
+        const localMacros = localStorage.getItem('ate_macros');
         const localSettings = localStorage.getItem('ate_settings');
         if (localSnippets) {
           try { snippets = JSON.parse(localSnippets); } catch (e) { snippets = [...DEFAULT_SNIPPETS]; }
         } else {
           snippets = [...DEFAULT_SNIPPETS];
           localStorage.setItem('ate_snippets', JSON.stringify(snippets));
+        }
+        if (localMacros) {
+          try { macros = JSON.parse(localMacros); } catch (e) { macros = []; }
         }
         if (localSettings) {
           try { settings = { ...settings, ...JSON.parse(localSettings) }; } catch (e) {}
@@ -171,21 +193,25 @@
   async function saveData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        await chrome.storage.local.set({ snippets, settings });
+        await chrome.storage.local.set({ snippets, settings, macros });
       } else {
         localStorage.setItem('ate_snippets', JSON.stringify(snippets));
         localStorage.setItem('ate_settings', JSON.stringify(settings));
+        localStorage.setItem('ate_macros', JSON.stringify(macros));
       }
       updateBadge();
     } catch (e) {
       console.error('Lỗi khi lưu dữ liệu:', e);
-      showToast('Lỗi khi lưu dữ liệu', 'error');
+      showToast('Có lỗi xảy ra khi lưu vào bộ nhớ!', 'error');
     }
   }
 
   function updateBadge() {
     if (badgeTotalSnippets) {
       badgeTotalSnippets.textContent = snippets.length;
+    }
+    if (badgeTotalMacros) {
+      badgeTotalMacros.textContent = macros.length;
     }
     if (listCounter) {
       listCounter.textContent = `${snippets.length} phím tắt đã lưu`;
@@ -678,6 +704,200 @@
   }
 
   // -------------------------------------------------------------
+  // MACROS AUTOMATION TAB
+  // -------------------------------------------------------------
+  function setupMacrosTab() {
+    if (btnCreateMacroGuide) {
+      btnCreateMacroGuide.addEventListener('click', () => {
+        alert(
+          'HƯỚNG DẪN GHI KỊCH BẢN MACRO:\n\n' +
+          '1. Mở trang web bạn muốn thực hiện tự động hóa (ví dụ trang Ticket, CRM, Form).\n' +
+          '2. Bấm vào icon tiện ích Auto Text Expander trên thanh công cụ Chrome.\n' +
+          '3. Nhấn nút màu đỏ "⏺️ Ghi Thao Tác".\n' +
+          '4. Thao tác bình thường trên form: gõ tiêu đề, chọn dropdown, nhập nội dung, bấm submit.\n' +
+          '5. Bấm "⏹️ Dừng & Lưu", đặt tên kịch bản và phím tắt (ví dụ :cbreply hoặc Alt+1).\n\n' +
+          'Sau đó bạn có thể kích hoạt kịch bản mọi lúc bằng phím tắt vừa đặt!'
+        );
+      });
+    }
+
+    if (btnCloseStepModal) btnCloseStepModal.addEventListener('click', closeStepModal);
+    if (btnCancelStepModal) btnCancelStepModal.addEventListener('click', closeStepModal);
+    if (btnSaveStepModal) btnSaveStepModal.addEventListener('click', saveStepModalChanges);
+  }
+
+  function renderMacrosList() {
+    if (!macrosListContainer) return;
+    updateBadge();
+    macrosListContainer.innerHTML = '';
+
+    if (macros.length === 0) {
+      macrosListContainer.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle);">
+          <div style="font-size: 36px; margin-bottom: 10px;">⚡</div>
+          <h3 style="color: var(--text-primary); margin-bottom: 6px;">Chưa có kịch bản tự động hóa nào</h3>
+          <p class="help-text" style="max-width: 480px; margin: 0 auto 16px auto;">
+            Hãy mở bất kỳ trang web nào và bấm "Ghi Thao Tác" trong Popup tiện ích để tạo kịch bản tự động điền form và gửi đầu tiên của bạn!
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    macros.forEach(macro => {
+      const card = document.createElement('div');
+      card.className = 'macro-card';
+
+      const stepsCount = macro.steps ? macro.steps.length : 0;
+      const stepsHtml = (macro.steps || []).slice(0, 3).map((st, i) => `
+        <div class="macro-step-row-summary" title="${escapeHtml(st.label || st.type)}">
+          <strong style="color:var(--primary); font-size:11px;">${i + 1}.</strong>
+          <span>${escapeHtml(st.label || st.type)}</span>
+        </div>
+      `).join('');
+
+      card.innerHTML = `
+        <div>
+          <div class="macro-card-top">
+            <div>
+              <div class="macro-card-title">${escapeHtml(macro.name)}</div>
+              <div class="macro-badges-row">
+                ${macro.shortcut ? `<span class="macro-badge-trigger" title="Từ khóa kích hoạt">${escapeHtml(macro.shortcut)}</span>` : ''}
+                ${macro.hotkey ? `<span class="macro-badge-hotkey" title="Phím nóng bàn phím">${escapeHtml(macro.hotkey)}</span>` : ''}
+                <span class="badge-tag">${stepsCount} bước thao tác</span>
+              </div>
+            </div>
+            <label class="toggle-switch" title="Bật/Tắt kịch bản này">
+              <input type="checkbox" class="macro-toggle-checkbox" ${macro.enabled !== false ? 'checked' : ''}>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div style="margin-top: 12px;">
+            <div class="macro-steps-summary">
+              ${stepsHtml}
+              ${stepsCount > 3 ? `<div style="font-size:11px; color:var(--text-muted); margin-top:4px;">+ ${stepsCount - 3} thao tác tiếp theo...</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="macro-card-actions">
+          <div class="macro-actions-left">
+            <button type="button" class="btn btn-secondary btn-edit-steps" style="padding:5px 10px; font-size:12px;">
+              ✏️ Sửa các bước
+            </button>
+          </div>
+          <button type="button" class="btn btn-danger-soft btn-delete-macro" style="padding:5px 10px; font-size:12px;">
+            🗑️ Xóa
+          </button>
+        </div>
+      `;
+
+      // Toggle status
+      const toggleCheck = card.querySelector('.macro-toggle-checkbox');
+      toggleCheck.addEventListener('change', async () => {
+        macro.enabled = toggleCheck.checked;
+        await saveData();
+        showToast(`Đã ${macro.enabled ? 'bật' : 'tắt'} kịch bản "${macro.name}"`);
+      });
+
+      // Edit steps
+      card.querySelector('.btn-edit-steps').addEventListener('click', () => {
+        openStepModal(macro);
+      });
+
+      // Delete macro
+      card.querySelector('.btn-delete-macro').addEventListener('click', async () => {
+        if (confirm(`Bạn có chắc muốn xóa kịch bản "${macro.name}"?`)) {
+          macros = macros.filter(m => m.id !== macro.id);
+          await saveData();
+          renderMacrosList();
+          showToast(`Đã xóa kịch bản "${macro.name}"`, 'success');
+        }
+      });
+
+      macrosListContainer.appendChild(card);
+    });
+  }
+
+  function openStepModal(macro) {
+    currentEditingMacro = macro;
+    stepModalTitle.textContent = `Các Bước: ${macro.name} (${macro.steps.length} bước)`;
+    stepModalList.innerHTML = '';
+
+    macro.steps.forEach((st, idx) => {
+      const stepRow = document.createElement('div');
+      stepRow.className = 'step-edit-card';
+      stepRow.dataset.stepIndex = idx;
+
+      const isInput = st.type === 'input' || st.type === 'quill';
+
+      stepRow.innerHTML = `
+        <div class="step-edit-left">
+          <span class="step-index-badge">${idx + 1}</span>
+          <div class="step-info-col">
+            <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${escapeHtml(st.label || st.type)}</div>
+            <div class="step-selector-code">${escapeHtml(st.selector || '')}</div>
+            ${isInput ? `
+              <div style="margin-top:4px;">
+                <input type="text" class="step-val-input" value="${escapeHtml(st.value || '')}" placeholder="Giá trị điền...">
+              </div>
+            ` : ''}
+          </div>
+        </div>
+        <button type="button" class="btn btn-danger-soft btn-delete-single-step" title="Xóa bước này" style="padding:4px 8px; font-size:11px;">
+          ✕ Xóa
+        </button>
+      `;
+
+      stepRow.querySelector('.btn-delete-single-step').addEventListener('click', () => {
+        stepRow.remove();
+        // Cập nhật lại số thứ tự
+        stepModalList.querySelectorAll('.step-edit-card').forEach((el, i) => {
+          el.querySelector('.step-index-badge').textContent = i + 1;
+        });
+      });
+
+      stepModalList.appendChild(stepRow);
+    });
+
+    macroStepModal.style.display = 'flex';
+  }
+
+  function closeStepModal() {
+    if (macroStepModal) macroStepModal.style.display = 'none';
+    currentEditingMacro = null;
+  }
+
+  async function saveStepModalChanges() {
+    if (!currentEditingMacro) return;
+
+    const remainingStepCards = stepModalList.querySelectorAll('.step-edit-card');
+    const newSteps = [];
+
+    remainingStepCards.forEach((card) => {
+      const origIdx = parseInt(card.dataset.stepIndex, 10);
+      const origStep = currentEditingMacro.steps[origIdx];
+      if (origStep) {
+        const valInput = card.querySelector('.step-val-input');
+        const updatedVal = valInput ? valInput.value : origStep.value;
+        newSteps.push({
+          ...origStep,
+          value: updatedVal
+        });
+      }
+    });
+
+    currentEditingMacro.steps = newSteps;
+    currentEditingMacro.updatedAt = Date.now();
+
+    await saveData();
+    closeStepModal();
+    renderMacrosList();
+    showToast('Đã lưu các thay đổi cho kịch bản!', 'success');
+  }
+
+  // -------------------------------------------------------------
   // URL RULES
   // -------------------------------------------------------------
   function setupUrlRules() {
@@ -756,7 +976,8 @@
         version: '1.0.0',
         exportedAt: new Date().toISOString(),
         settings,
-        snippets
+        snippets,
+        macros
       };
       downloadFile(JSON.stringify(exportData, null, 2), 'auto-text-expander-backup.json', 'application/json');
       showToast('Đã xuất thành công file JSON!', 'success');
@@ -843,6 +1064,20 @@
           newSnippets = parsed.snippets;
           if (parsed.settings) {
             settings = { ...settings, ...parsed.settings };
+          }
+          if (parsed.macros && Array.isArray(parsed.macros)) {
+            if (mode === 'overwrite') {
+              macros = parsed.macros;
+            } else {
+              for (const m of parsed.macros) {
+                const idx = macros.findIndex(x => x.id === m.id || x.shortcut === m.shortcut);
+                if (idx !== -1) {
+                  macros[idx] = { ...macros[idx], ...m };
+                } else {
+                  macros.push(m);
+                }
+              }
+            }
           }
         } else {
           throw new Error('Cấu trúc file JSON không hợp lệ');

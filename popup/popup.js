@@ -5,6 +5,7 @@
   let currentHost = '';
   let currentUrl = '';
   let snippets = [];
+  let macros = [];
   let settings = {
     enabled: true,
     urlMode: 'blacklist',
@@ -27,6 +28,8 @@
   const btnToggleTheme = document.getElementById('btn-toggle-theme');
   const iconSun = document.getElementById('popup-theme-icon-sun');
   const iconMoon = document.getElementById('popup-theme-icon-moon');
+  const btnStartRecordMacro = document.getElementById('btn-start-record-macro');
+  const macroQuickList = document.getElementById('macro-quick-list');
 
   let toastTimer = null;
 
@@ -35,6 +38,7 @@
     await loadData();
     applyTheme(settings.theme || 'dark');
     renderSiteStatus();
+    renderMacros();
     renderSnippets();
 
     // Event listeners
@@ -42,6 +46,9 @@
     popupSearch.addEventListener('input', renderSnippets);
     if (btnToggleTheme) {
       btnToggleTheme.addEventListener('click', toggleTheme);
+    }
+    if (btnStartRecordMacro) {
+      btnStartRecordMacro.addEventListener('click', handleStartRecordMacro);
     }
 
     const openOptionsHandler = () => {
@@ -78,17 +85,22 @@
   async function loadData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const data = await chrome.storage.local.get(['snippets', 'settings']);
+        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros']);
         if (data.snippets && Array.isArray(data.snippets)) {
           snippets = data.snippets;
+        }
+        if (data.macros && Array.isArray(data.macros)) {
+          macros = data.macros;
         }
         if (data.settings) {
           settings = { ...settings, ...data.settings };
         }
       } else {
         const localSnippets = localStorage.getItem('ate_snippets');
+        const localMacros = localStorage.getItem('ate_macros');
         const localSettings = localStorage.getItem('ate_settings');
         if (localSnippets) snippets = JSON.parse(localSnippets);
+        if (localMacros) macros = JSON.parse(localMacros);
         if (localSettings) settings = { ...settings, ...JSON.parse(localSettings) };
       }
     } catch (e) {
@@ -243,6 +255,82 @@
 
       quickSnippetsList.appendChild(item);
     });
+  }
+
+  // Render danh sách kịch bản Macro nhanh
+  function renderMacros() {
+    if (!macroQuickList) return;
+    macroQuickList.innerHTML = '';
+
+    const activeMacros = macros.filter(m => m.enabled !== false);
+    if (activeMacros.length === 0) {
+      macroQuickList.innerHTML = `
+        <div style="font-size:11px; color:var(--text-muted); text-align:center; padding:6px 0;">
+          Chưa có kịch bản. Bấm "Ghi Thao Tác" để tự động hóa biểu mẫu.
+        </div>
+      `;
+      return;
+    }
+
+    // Hiển thị tối đa 3 macro gần nhất
+    activeMacros.slice(0, 3).forEach(m => {
+      const row = document.createElement('div');
+      row.className = 'macro-item-row';
+      row.innerHTML = `
+        <div class="macro-info">
+          <span class="macro-name">${escapeHtml(m.name)}</span>
+          <div class="macro-keys">
+            <span>Phím: <strong class="macro-key-badge">${escapeHtml(m.shortcut || m.hotkey || '')}</strong></span>
+            <span>(${m.steps ? m.steps.length : 0} bước)</span>
+          </div>
+        </div>
+        <button type="button" class="btn-run-macro-sm" title="Chạy ngay kịch bản này trên trang">
+          <span>▶</span> Chạy
+        </button>
+      `;
+
+      row.querySelector('.btn-run-macro-sm').addEventListener('click', async (e) => {
+        e.stopPropagation();
+        try {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          if (tab && tab.id) {
+            chrome.tabs.sendMessage(tab.id, { action: 'PLAY_MACRO', macro: m });
+            window.close();
+          }
+        } catch (err) {
+          showToast('Không thể chạy kịch bản trên trang này');
+        }
+      });
+
+      macroQuickList.appendChild(row);
+    });
+  }
+
+  // Khởi động chế độ ghi thao tác trên tab hiện tại
+  async function handleStartRecordMacro() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab || !tab.id) {
+        showToast('Không tìm thấy tab hợp lệ');
+        return;
+      }
+
+      // Kiểm tra URL nội bộ chrome://
+      if (tab.url && (tab.url.startsWith('chrome://') || tab.url.startsWith('edge://') || tab.url.startsWith('about:'))) {
+        showToast('Không thể ghi trên trang nội bộ của trình duyệt');
+        return;
+      }
+
+      chrome.tabs.sendMessage(tab.id, { action: 'START_RECORDING' }, (res) => {
+        if (chrome.runtime.lastError) {
+          showToast('Vui lòng tải lại trang web trước khi ghi thao tác');
+        } else {
+          window.close(); // Đóng popup để người dùng thao tác trực tiếp trên web
+        }
+      });
+    } catch (e) {
+      showToast('Lỗi kết nối tới trang');
+    }
   }
 
   function showToast(msg) {

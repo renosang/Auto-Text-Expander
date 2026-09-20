@@ -34,6 +34,7 @@
   ];
 
   let snippets = [...DEFAULT_SNIPPETS];
+  let macros = [];
   let settings = {
     enabled: true,
     urlMode: 'blacklist',
@@ -50,9 +51,12 @@
   async function loadData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const data = await chrome.storage.local.get(['snippets', 'settings']);
+        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros']);
         if (data.snippets && Array.isArray(data.snippets) && data.snippets.length > 0) {
           snippets = data.snippets;
+        }
+        if (data.macros && Array.isArray(data.macros)) {
+          macros = data.macros;
         }
         if (data.settings) {
           settings = { ...settings, ...data.settings };
@@ -69,6 +73,9 @@
       if (namespace === 'local') {
         if (changes.snippets && changes.snippets.newValue) {
           snippets = changes.snippets.newValue;
+        }
+        if (changes.macros && changes.macros.newValue) {
+          macros = changes.macros.newValue;
         }
         if (changes.settings && changes.settings.newValue) {
           settings = { ...settings, ...changes.settings.newValue };
@@ -242,6 +249,25 @@
     return null;
   }
 
+  // Tìm macro kịch bản khớp với chuỗi văn bản trước con trỏ
+  function findMatchingMacro(text) {
+    if (!text || macros.length === 0) return null;
+    const activeMacros = macros.filter(m => m.enabled && m.shortcut);
+    const sorted = [...activeMacros].sort((a, b) => b.shortcut.length - a.shortcut.length);
+
+    for (const m of sorted) {
+      const sc = m.shortcut;
+      if (!sc) continue;
+      if (text.endsWith(sc) || text.toLowerCase().endsWith(sc.toLowerCase())) {
+        return m;
+      }
+      if (text.endsWith(sc + ' ') || text.toLowerCase().endsWith(sc.toLowerCase() + ' ')) {
+        return m;
+      }
+    }
+    return null;
+  }
+
   function escapeRegExp(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
@@ -309,6 +335,31 @@
     const fullValue = el.value || '';
     const textBeforeCaret = fullValue.slice(0, caretPos);
     const textAfterCaret = fullValue.slice(caretPos);
+
+    // 1. Kiểm tra nếu khớp với phím tắt của kịch bản Macro
+    const matchedMacro = findMatchingMacro(textBeforeCaret);
+    if (matchedMacro) {
+      isExpanding = true;
+      try {
+        const sc = matchedMacro.shortcut;
+        const removeLen = textBeforeCaret.endsWith(' ') ? sc.length + 1 : sc.length;
+        const startPos = caretPos - removeLen;
+        const expectedFullValue = fullValue.slice(0, startPos) + textAfterCaret;
+        setNativeInputValue(el, expectedFullValue, startPos);
+
+        // Kích hoạt chạy Macro tự động
+        setTimeout(() => {
+          if (window.AteMacroReplayer) {
+            window.AteMacroReplayer.play(matchedMacro);
+          }
+        }, 80);
+      } catch (e) {
+        console.error('Lỗi khởi chạy macro từ phím tắt:', e);
+      } finally {
+        setTimeout(() => { isExpanding = false; }, 120);
+      }
+      return;
+    }
 
     const matchedSnippet = findMatchingSnippet(textBeforeCaret);
     if (!matchedSnippet) return;

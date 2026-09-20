@@ -50,3 +50,251 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 600;
 }
+
+/* ==========================================================================
+   FLOATING RECORDER WIDGET & MACRO AUTOMATION
+   ========================================================================== */
+.ate-recorder-widget {
+  position: fixed;
+  top: 24px;
+  right: 28px;
+  z-index: 2147483646;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: rgba(15, 23, 42, 0.95);
+  color: #f8fafc;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(239, 68, 68, 0.25);
+  cursor: grab;
+  user-select: none;
+  animation: ate-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ate-recorder-widget:active {
+  cursor: grabbing;
+}
+
+@keyframes ate-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ate-rec-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ate-rec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: ate-rec-pulse 1.4s infinite cubic-bezier(0.66, 0, 0, 1);
+}
+
+@keyframes ate-rec-pulse {
+  to {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+}
+
+.ate-rec-text {
+  font-weight: 600;
+  color: #f8fafc;
+  letter-spacing: 0.2px;
+}
+
+.ate-step-badge {
+  background: rgba(239, 68, 68, 0.2);
+  color: #fca5a5;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.ate-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 6px;
+}
+
+.ate-btn-widget {
+  border: none;
+  outline: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ate-btn-done {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.ate-btn-done:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.ate-btn-cancel {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+.ate-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* Highlight border for elements being recorded */
+.ate-recording-highlight {
+  outline: 2px dashed #10b981 !important;
+  outline-offset: 2px !important;
+  transition: outline 0.15s ease-in-out;
+}
+
+/* Modal Save Macro Overlay */
+.ate-macro-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: ate-fade-in 0.2s ease;
+}
+
+@keyframes ate-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ate-macro-modal {
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  box-sizing: border-box;
+}
+
+.ate-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.ate-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ate-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ate-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ate-field-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.ate-modal-input {
+  width: 100%;
+  padding: 9px 12px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.ate-modal-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.ate-field-help {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.ate-steps-preview {
+  max-height: 140px;
+  overflow-y: auto;
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 12px;
+}
+
+.ate-step-item {
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #cbd5e1;
+}
+
+.ate-step-item:last-child {
+  border-bottom: none;
+}
+
+.ate-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+

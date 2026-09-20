@@ -42,7 +42,9 @@
       "js": [
         "lib/marked.min.js",
         "lib/purify.min.js",
-        "content/content.js"
+        "content/content.js",
+        "content/macro-recorder.js",
+        "content/macro-replayer.js"
       ],
       "css": [
         "content/content.css"

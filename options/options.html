@@ -40,6 +40,14 @@
           <span class="nav-label">Phòng Thử Nghiệm</span>
         </button>
 
+        <button class="nav-item" data-tab="macros">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span class="nav-label">Kịch Bản Macro</span>
+          <span class="nav-badge" id="badge-total-macros">0</span>
+        </button>
+
         <button class="nav-item" data-tab="url-rules">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -299,6 +307,57 @@
                   data-placeholder="Gõ thử :sig hoặc :meeting vào đây để thấy Markdown tự bung thành chữ in đậm, link đầy đủ...">
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB: MACROS (FORM AUTOMATION) -->
+      <section id="tab-macros" class="tab-pane">
+        <header class="section-header">
+          <div>
+            <h2>Kịch Bản Tự Động Hóa (Macro Automation)</h2>
+            <p class="subtitle">Tự động điền biểu mẫu, chọn dropdown và bấm nút Submit theo đúng chuỗi thao tác đã ghi.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-create-macro-guide">
+            <span class="rec-dot-small" style="background:#fff; width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px;"></span>
+            Hướng Dẫn Ghi Kịch Bản Mới
+          </button>
+        </header>
+
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-body" style="display: flex; align-items: center; gap: 16px; background: rgba(99, 102, 241, 0.08); border-radius: 8px;">
+            <div style="font-size: 28px;">💡</div>
+            <div>
+              <strong style="color: var(--text-primary); font-size: 14px;">Cách tạo kịch bản tự động hóa:</strong>
+              <p class="help-text" style="margin: 4px 0 0 0;">
+                1. Mở trang web bạn muốn tự động điền form (ví dụ: trang Ticket CRM, Admin...).<br>
+                2. Bấm icon <strong>Auto Text Expander</strong> trên thanh tiện ích Chrome &rarr; Chọn <strong>"Ghi Thao Tác"</strong>.<br>
+                3. Thao tác trên form như bình thường (nhập dữ liệu, chọn mục, bấm submit) &rarr; Bấm <strong>"Dừng & Lưu"</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="macros-list-grid" id="macros-list-container">
+          <!-- Injected via JS -->
+        </div>
+
+        <!-- Macro Step Editor Modal -->
+        <div id="macro-step-modal" class="ate-macro-overlay" style="display: none;">
+          <div class="ate-macro-modal" style="max-width: 620px;">
+            <div class="ate-modal-header">
+              <h3 class="ate-modal-title" id="step-modal-title">Chi Tiết Các Bước Kịch Bản</h3>
+              <button type="button" class="btn-icon" id="btn-close-step-modal">✕</button>
+            </div>
+            <div class="ate-modal-body">
+              <div id="step-modal-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto;">
+                <!-- Step items injected by JS -->
+              </div>
+            </div>
+            <div class="ate-modal-footer">
+              <button type="button" class="btn btn-secondary" id="btn-cancel-step-modal">Đóng</button>
+              <button type="button" class="btn btn-primary" id="btn-save-step-modal">Lưu Thay Đổi</button>
             </div>
           </div>
         </div>
