@@ -10,12 +10,30 @@
   let modalEl = null;
 
   // -------------------------------------------------------------
+  // DYNAMIC / TRANSIENT STATE CLASSES FILTER
+  // -------------------------------------------------------------
+  const TRANSIENT_CLASS_PATTERN = /^(focused|focus|is-focused|has-focus|active|is-active|open|is-open|opened|show|showing|selected|is-selected|hover|disabled|loading|dirty|touched|valid|invalid)$/i;
+
+  function isStableClass(className) {
+    if (!className || typeof className !== 'string') return false;
+    const trimmed = className.trim();
+    if (!trimmed) return false;
+    if (trimmed.startsWith('css-') || trimmed.startsWith('ate-') || trimmed.startsWith('ng-')) {
+      return false;
+    }
+    if (TRANSIENT_CLASS_PATTERN.test(trimmed)) {
+      return false;
+    }
+    return true;
+  }
+
+  // -------------------------------------------------------------
   // SMART SELECTOR GENERATOR
   // -------------------------------------------------------------
   function getSmartSelector(el) {
     if (!el || el === document.body || el === document.documentElement) return null;
 
-    // 1. Kiểm tra thuộc tính name (rất chuẩn xác cho Form inputs)
+    // 1. Kiểm tra thuộc tính name (chuẩn xác cho form inputs)
     if (el.name) {
       const tag = el.tagName.toLowerCase();
       const selector = `${tag}[name="${el.name}"]`;
@@ -24,7 +42,7 @@
       }
     }
 
-    // 2. Kiểm tra ID nếu không phải là ID sinh ngẫu nhiên của thư viện (như react-select-15-input)
+    // 2. Kiểm tra ID nếu không phải là ID ngẫu nhiên động (như react-select-15-input)
     if (el.id && !el.id.match(/^react-select-|^[a-z0-9]{8,}/i)) {
       const selector = `#${CSS.escape(el.id)}`;
       if (document.querySelectorAll(selector).length === 1) {
@@ -41,7 +59,7 @@
       return '.ql-editor';
     }
 
-    // 4. Kiểm tra data attributes (data-testid, data-id, data-action)
+    // 4. Kiểm tra data attributes (data-testid, data-id, data-action, data-qa)
     for (const attr of ['data-testid', 'data-id', 'data-action', 'data-qa']) {
       if (el.getAttribute && el.getAttribute(attr)) {
         const selector = `[${attr}="${CSS.escape(el.getAttribute(attr))}"]`;
@@ -49,17 +67,40 @@
       }
     }
 
-    // 5. Kiểm tra nếu là Button có text độc nhất
-    if (el.tagName === 'BUTTON' || el.getAttribute('role') === 'button' || el.classList.contains('btn')) {
-      const text = el.innerText?.trim();
-      if (text && text.length < 30) {
-        // Tìm button theo text hoặc class kết hợp
-        const btnClass = el.className ? '.' + Array.from(el.classList).slice(0, 2).join('.') : '';
-        return `${el.tagName.toLowerCase()}${btnClass}`;
+    // 5. Kiểm tra class độc nhất của chính phần tử (loại trừ các class trạng thái như .focused, .active)
+    if (el.className && typeof el.className === 'string') {
+      const elTag = el.tagName.toLowerCase();
+      const cleanElClasses = Array.from(el.classList).filter(isStableClass);
+
+      for (const cls of cleanElClasses) {
+        const sel = `${elTag}.${CSS.escape(cls)}`;
+        try {
+          if (document.querySelectorAll(sel).length === 1) {
+            return sel;
+          }
+        } catch (e) {}
+      }
+      if (cleanElClasses.length >= 2) {
+        const sel = `${elTag}.${cleanElClasses.slice(0, 2).map(c => CSS.escape(c)).join('.')}`;
+        try {
+          if (document.querySelectorAll(sel).length === 1) {
+            return sel;
+          }
+        } catch (e) {}
       }
     }
 
-    // 6. Kiểm tra cấu trúc form-group với nhãn (Label)
+    // 6. Kiểm tra nếu là Button có class ổn định
+    if (el.tagName === 'BUTTON' || el.getAttribute('role') === 'button' || el.classList?.contains('btn')) {
+      const cleanClasses = Array.from(el.classList || []).filter(isStableClass).slice(0, 2);
+      const btnClass = cleanClasses.length > 0 ? '.' + cleanClasses.map(c => CSS.escape(c)).join('.') : '';
+      const sel = `${el.tagName.toLowerCase()}${btnClass}`;
+      try {
+        if (document.querySelectorAll(sel).length === 1) return sel;
+      } catch (e) {}
+    }
+
+    // 7. Kiểm tra cấu trúc form-group với nhãn (Label)
     const formGroup = el.closest('.form-group');
     if (formGroup) {
       const label = formGroup.parentElement?.querySelector('.text-bold-600, label');
@@ -68,24 +109,33 @@
       }
     }
 
-    // 7. Fallback: Path selector ngắn gọn
+    // 8. Fallback: Path selector ngắn gọn, lọc sạch các class trạng thái tạm thời (transient state)
     let path = [];
     let curr = el;
     while (curr && curr !== document.body && path.length < 4) {
       let segment = curr.tagName.toLowerCase();
-      if (curr.id && !curr.id.match(/react-select/)) {
+      if (curr.id && !curr.id.match(/^react-select|^[a-z0-9]{8,}/i)) {
         segment += `#${CSS.escape(curr.id)}`;
         path.unshift(segment);
         break;
       } else if (curr.className && typeof curr.className === 'string') {
         const cleanClasses = Array.from(curr.classList)
-          .filter(c => !c.startsWith('css-') && !c.startsWith('ate-'))
+          .filter(isStableClass)
           .slice(0, 2);
         if (cleanClasses.length > 0) {
-          segment += '.' + cleanClasses.join('.');
+          segment += '.' + cleanClasses.map(c => CSS.escape(c)).join('.');
         }
       }
       path.unshift(segment);
+
+      // Thử xem path hiện tại đã đủ để chọn duy nhất chưa để dừng sớm
+      try {
+        const currentPathSelector = path.join(' > ');
+        if (document.querySelectorAll(currentPathSelector).length === 1) {
+          return currentPathSelector;
+        }
+      } catch (e) {}
+
       curr = curr.parentElement;
     }
 

@@ -47,7 +47,16 @@
     try {
       el.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
     } catch (e) {}
+
+    try {
+      el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true }));
+    } catch (e) {}
   }
+
+  // -------------------------------------------------------------
+  // DYNAMIC / TRANSIENT STATE CLASSES PATTERN
+  // -------------------------------------------------------------
+  const TRANSIENT_CLASS_REGEX = /\.(focused|is-focused|has-focus|active|is-active|open|is-open|opened|show|showing|selected|is-selected|hover|focus|disabled|loading|dirty|touched|valid|invalid)\b/gi;
 
   // -------------------------------------------------------------
   // ELEMENT FINDER VỚI SMART FALLBACK
@@ -55,22 +64,80 @@
   function findElementWithFallback(step) {
     if (!step) return null;
 
-    // 1. Thử trực tiếp bằng selector
+    // 1. Thử trực tiếp bằng selector nguyên bản
     if (step.selector) {
       try {
         const found = document.querySelector(step.selector);
         if (found) return found;
       } catch (e) {}
+
+      // 2. Thử loại bỏ các dynamic state classes khỏi selector
+      // Ví dụ: .searchable-brand-input-box.focused -> .searchable-brand-input-box
+      try {
+        const cleanedSelector = step.selector
+          .replace(TRANSIENT_CLASS_REGEX, '')
+          .replace(/\s*>\s*>\s*/g, ' > ')
+          .replace(/>\s*$/g, '')
+          .trim();
+
+        if (cleanedSelector && cleanedSelector !== step.selector) {
+          const found = document.querySelector(cleanedSelector);
+          if (found) return found;
+        }
+      } catch (e) {}
+
+      // 3. Thử tìm bằng phần tử lá cuối cùng trong selector (Leaf element)
+      // Ví dụ: "div.faq-form-group > ... > input.searchable-brand-inner-input" -> "input.searchable-brand-inner-input"
+      try {
+        const segments = step.selector.split(/\s*>\s*/).map(s => s.trim()).filter(Boolean);
+        if (segments.length > 1) {
+          let lastPart = segments[segments.length - 1];
+          lastPart = lastPart.replace(TRANSIENT_CLASS_REGEX, '').trim();
+          if (lastPart) {
+            const matches = document.querySelectorAll(lastPart);
+            if (matches.length === 1) {
+              return matches[0];
+            } else if (matches.length > 1) {
+              // Thử kết hợp với phần tử gốc đầu tiên (top container)
+              const firstPart = segments[0].replace(TRANSIENT_CLASS_REGEX, '').trim();
+              try {
+                const scoped = document.querySelector(`${firstPart} ${lastPart}`);
+                if (scoped) return scoped;
+              } catch (e) {}
+
+              // Hoặc ưu tiên phần tử đang hiển thị trên màn hình
+              for (const m of matches) {
+                if (m.offsetParent !== null || m.offsetWidth > 0 || m.offsetHeight > 0) return m;
+              }
+              return matches[0];
+            }
+          }
+        }
+      } catch (e) {}
     }
 
-    // 2. Thử tìm theo name
+    // 4. Thử tìm theo name
     const matchName = step.selector?.match(/\[name="([^"]+)"\]/);
     if (matchName && matchName[1]) {
       const el = document.querySelector(`[name="${matchName[1]}"]`);
       if (el) return el;
     }
 
-    // 3. Nếu là click button và có text
+    // 5. Thử tìm theo placeholder hoặc label đã lưu
+    if (step.label) {
+      const matchPlaceholder = step.label.match(/Ô\s*["']([^"']+)["']/);
+      if (matchPlaceholder && matchPlaceholder[1]) {
+        const el = document.querySelector(`[placeholder="${matchPlaceholder[1]}"]`);
+        if (el) return el;
+      }
+      const matchField = step.label.match(/Trường\s*\[([^\]]+)\]/);
+      if (matchField && matchField[1]) {
+        const el = document.querySelector(`[name="${matchField[1]}"]`);
+        if (el) return el;
+      }
+    }
+
+    // 6. Nếu là click button và có text
     if (step.type === 'click' && step.label) {
       const cleanLabel = step.label.replace(/^Bấm Nút\s*["']?|["']?$/g, '').trim().toLowerCase();
       const buttons = document.querySelectorAll('button, a, [role="button"], input[type="submit"]');
@@ -81,12 +148,24 @@
       }
     }
 
-    // 4. Nếu là Quill
+    // 7. Nếu là Quill Editor
     if (step.type === 'quill') {
       const ql = document.querySelector('.ql-editor');
       if (ql) return ql;
     }
 
+    return null;
+  }
+
+  // Chờ đợi và thử lại tìm kiếm phần tử (cho phép DOM cập nhật/hiển thị)
+  async function findElementWithRetry(step, maxRetries = 3, interval = 200) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const el = findElementWithFallback(step);
+      if (el) return el;
+      if (attempt < maxRetries) {
+        await wait(interval);
+      }
+    }
     return null;
   }
 
@@ -169,7 +248,7 @@
         const step = steps[i];
         showProgressToast(macro.name, i + 1, steps.length, step.label || step.type);
 
-        const el = findElementWithFallback(step);
+        const el = await findElementWithRetry(step, 3, 200);
 
         if (el) {
           try {
