@@ -298,3 +298,190 @@
   margin-top: 22px;
 }
 
+/* ==========================================================================
+   INTERACTIVE FILL-IN POPOVER (DYNAMIC VARIABLES MODAL)
+   ========================================================================== */
+.ate-fillin-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  animation: ate-fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ate-fillin-modal {
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 460px;
+  padding: 22px 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 25px rgba(99, 102, 241, 0.2);
+  box-sizing: border-box;
+  animation: ate-pop-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ate-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.ate-fillin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ate-fillin-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ate-fillin-shortcut-badge {
+  background: rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.4);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.ate-fillin-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ate-fillin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ate-fillin-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ate-fillin-label span.var-name {
+  color: #818cf8;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.ate-fillin-input,
+.ate-fillin-select {
+  width: 100%;
+  padding: 9px 12px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 13.5px;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+
+.ate-fillin-input:focus,
+.ate-fillin-select:focus {
+  border-color: #6366f1;
+  background: #243048;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.ate-fillin-select option {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.ate-fillin-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ate-fillin-hint {
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.ate-fillin-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ate-btn-fillin-cancel {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.ate-btn-fillin-cancel:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.ate-btn-fillin-submit {
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: #ffffff;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ate-btn-fillin-submit:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.5);
+}
+
+

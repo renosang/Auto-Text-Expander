@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chính Sách Quyền Riêng Tư | Privacy Policy - Auto Text Expander</title>
+  <meta name="description" content="Chính sách quyền riêng tư của tiện ích mở rộng Auto Text Expander & Form Macro Automation. Cam kết bảo mật 100% dữ liệu cục bộ.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M13 10V3L4 14h7v7l9-11h-7z'/></svg>">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --badge-bg: #dbeafe;
+      --badge-text: #1e40af;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 25px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.65;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* Top Bar & Language Switcher */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+
+    .brand-text h1 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .brand-text p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .lang-switcher {
+      display: flex;
+      background: #e2e8f0;
+      border-radius: 8px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .lang-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+    }
+
+    .lang-btn.active {
+      background: white;
+      color: var(--primary);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Main Document Card */
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
+      padding: 44px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 20px 12px; }
+      .card { padding: 24px 18px; }
+    }
+
+    .doc-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .doc-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--success-light);
+      color: var(--success);
+      font-weight: 600;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .highlight-box {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 24px 0;
+      font-size: 15px;
+      color: #1e3a8a;
+    }
+
+    .highlight-box strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--primary-dark);
+      font-size: 16px;
+    }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 36px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 .num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: #334155;
+    }
+
+    ul {
+      margin: 12px 0 18px 24px;
+      color: #334155;
+      font-size: 15px;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    /* Table styling */
+    .table-container {
+      overflow-x: auto;
+      margin: 18px 0 24px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: var(--text-main);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    code {
+      background: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 20px;
+    }
+
+    .footer a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Language display toggle */
+    .lang-content {
+      display: none;
+    }
+
+    .lang-content.active-lang {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header-bar">
+      <a href="#" class="brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>Auto Text Expander</h1>
+          <p>Form Macro Automation & Text Expansion</p>
+        </div>
+      </a>
+
+      <!-- Language Buttons -->
+      <div class="lang-switcher">
+        <button class="lang-btn active" id="btn-vi" onclick="setLanguage('vi')">Tiếng Việt</button>
+        <button class="lang-btn" id="btn-en" onclick="setLanguage('en')">English</button>
+      </div>
+    </header>
+
+    <!-- Content Card -->
+    <main class="card">
+
+      <!-- ====================== VIETNAMESE VERSION ====================== -->
+      <div id="content-vi" class="lang-content active-lang">
+        <h1 class="doc-title">Chính Sách Quyền Riêng Tư</h1>
+        <div class="doc-meta">
+          <span><strong>Phiên bản:</strong> 1.0.0</span>
+          <span>•</span>
+          <span><strong>Ngày cập nhật:</strong> 21/09/2026</span>
+          <span class="badge">✓ 100% Bảo Mật &amp; Ngoại Tuyến</span>
+        </div>
+
+        <div class="highlight-box">
+          <strong>Cam kết quyền riêng tư cốt lõi:</strong>
+          Tiện ích <strong>Auto Text Expander</strong> KHÔNG thu thập, KHÔNG lưu trữ từ xa, KHÔNG theo dõi và KHÔNG chia sẻ bất kỳ dữ liệu cá nhân hay lịch sử gõ phím nào của bạn. Toàn bộ dữ liệu được lưu trữ 100% cục bộ trên máy tính của bạn.
+        </div>
+
+        <h2><span class="num">1</span> Mục Đích Duy Nhất (Single Purpose)</h2>
+        <p>
+          Tiện ích có mục đích duy nhất là giúp người dùng tự động hóa việc nhập văn bản và điền biểu mẫu lặp lại trên các trang web thông qua các phím tắt do người dùng tự thiết lập. Khi bạn gõ từ khóa viết tắt đã định nghĩa trước, tiện ích sẽ tự động mở rộng thành văn bản hoàn chỉnh hoặc tự động điền các trường dữ liệu trên form.
+        </p>
+
+        <h2><span class="num">2</span> Thu Thập Dữ Liệu (Data Collection)</h2>
+        <p>Chúng tôi tôn trọng và bảo vệ quyền riêng tư tuyệt đối của bạn:</p>
+        <ul>
+          <li><strong>Phím tắt và Nội dung mở rộng:</strong> Toàn bộ từ khóa viết tắt, mẫu văn bản, kịch bản điền form (macros) được lưu trữ hoàn toàn trong bộ nhớ nội bộ của trình duyệt (<code>chrome.storage.local</code>).</li>
+          <li><strong>Không có máy chủ bên ngoài (Zero Remote Servers):</strong> Tiện ích hoạt động độc lập ngoại tuyến (offline). Chúng tôi không vận hành bất kỳ máy chủ nào để thu thập dữ liệu, phân tích người dùng (analytics) hay quảng cáo.</li>
+          <li><strong>Không ghi lại bàn phím (No Keylogger):</strong> Tiện ích chỉ kiểm tra chuỗi ký tự vừa gõ trên ô soạn thảo hiện tại để đối chiếu với danh sách từ khóa viết tắt do bạn cài đặt. Mọi thao tác gõ phím khác hoàn toàn bị bỏ qua và không bao giờ được lưu trữ.</li>
+          <li><strong>Không theo dõi lịch sử duyệt web:</strong> Tiện ích chỉ đọc URL hiện tại để kiểm tra quy tắc danh sách Bật/Tắt (Blacklist / Whitelist) do bạn cấu hình. Lịch sử duyệt web không bao giờ được lưu lại.</li>
+        </ul>
+
+        <h2><span class="num">3</span> Giải Trình Các Quyền Hạn (Permissions)</h2>
+        <p>Để thực hiện đúng chức năng của mình, tiện ích chỉ yêu cầu các quyền hạn tối thiểu được Google Chrome phê duyệt:</p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 25%;">Quyền Hạn</th>
+                <th>Mục Đích Sử Dụng</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>storage</code></td>
+                <td>Dùng để lưu trữ an toàn các phím tắt, kịch bản form và tùy chọn cài đặt trực tiếp trên máy tính của bạn. Dữ liệu không bao giờ truyền ra ngoài.</td>
+              </tr>
+              <tr>
+                <td><code>contextMenus</code></td>
+                <td>Tạo tùy chọn trong menu chuột phải để bạn mở nhanh trang quản trị cài đặt (Dashboard / Options) một cách thuận tiện.</td>
+              </tr>
+              <tr>
+                <td><code>host_permissions</code><br><code>&lt;all_urls&gt;</code></td>
+                <td>Cho phép tiện ích chèn tập lệnh hỗ trợ (content script) vào các trang web bạn truy cập để nhận diện từ khóa phím tắt và thực hiện điền form theo yêu cầu của bạn. Tuyệt đối không thu thập mật khẩu hoặc gửi dữ liệu ra bên ngoài.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2><span class="num">4</span> Chia Sẻ Dữ Liệu Cho Bên Thứ Ba</h2>
+        <p>
+          Vì chúng tôi hoàn toàn không thu thập bất kỳ dữ liệu nào, chúng tôi <strong>cam kết không bao giờ bán, cho thuê, chia sẻ hoặc chuyển giao</strong> thông tin của người dùng cho bất kỳ bên thứ ba nào dưới bất kỳ hình thức nào.
+        </p>
+
+        <h2><span class="num">5</span> Tiêu Chuẩn Bảo Mật &amp; Manifest V3</h2>
+        <p>Tiện ích được phát triển theo tiêu chuẩn bảo mật nghiêm ngặt nhất của Google Chrome:</p>
+        <ul>
+          <li>Tuân thủ chuẩn <strong>Google Chrome Manifest V3</strong>.</li>
+          <li>Không sử dụng mã từ xa (No remote code execution), không sử dụng <code>eval()</code>.</li>
+          <li>Mọi nội dung Markdown và HTML đều được lọc sạch mã độc thông qua thư viện kiểm duyệt an toàn DOMPurify trước khi hiển thị.</li>
+        </ul>
+
+        <h2><span class="num">6</span> Quyền Kiểm Soát Của Người Dùng</h2>
+        <ul>
+          <li><strong>Thêm / Sửa / Xóa:</strong> Bạn có toàn quyền quản lý, sửa đổi hoặc xóa bất kỳ phím tắt nào bất cứ lúc nào.</li>
+          <li><strong>Sao lưu / Xuất dữ liệu:</strong> Bạn có thể xuất toàn bộ dữ liệu ra file JSON hoặc CSV để lưu trữ độc lập.</li>
+          <li><strong>Xóa bỏ hoàn toàn:</strong> Khi bạn gỡ bỏ tiện ích khỏi trình duyệt Chrome, toàn bộ dữ liệu lưu trong <code>chrome.storage.local</code> sẽ được xóa vĩnh viễn khỏi máy tính của bạn.</li>
+        </ul>
+
+        <h2><span class="num">7</span> Thông Tin Liên Hệ</h2>
+        <p>Nếu bạn có bất kỳ câu hỏi, thắc mắc hoặc yêu cầu hỗ trợ nào về chính sách quyền riêng tư này, vui lòng liên hệ với chúng tôi qua:</p>
+        <ul>
+          <li><strong>Email hỗ trợ:</strong> <a href="mailto:support@autotextexpander.example">support@autotextexpander.example</a></li>
+          <li><strong>Trang quản lý dự án:</strong> GitHub / Web Store Support</li>
+        </ul>
+      </div>
+
+      <!-- ====================== ENGLISH VERSION ====================== -->
+      <div id="content-en" class="lang-content">
+        <h1 class="doc-title">Privacy Policy</h1>
+        <div class="doc-meta">
+          <span><strong>Version:</strong> 1.0.0</span>
+          <span>•</span>
+          <span><strong>Last Updated:</strong> September 21, 2026</span>
+          <span class="badge">✓ 100% Private &amp; Offline</span>
+        </div>
+
+        <div class="highlight-box">
+          <strong>Core Privacy Pledge:</strong>
+          <strong>Auto Text Expander</strong> does NOT collect, store remotely, monitor, or transmit any personal data, keystrokes, or browsing activities. All user data remains 100% local on your device.
+        </div>
+
+        <h2><span class="num">1</span> Single Purpose</h2>
+        <p>
+          The single purpose of this extension is to automate repetitive text entry and form filling across web pages using user-defined shortcut triggers. When a user types a predefined abbreviation, the extension automatically expands it into full text or automatically populates corresponding form inputs and dropdown fields.
+        </p>
+
+        <h2><span class="num">2</span> Data Collection &amp; Privacy</h2>
+        <p>We believe your personal data belongs strictly to you:</p>
+        <ul>
+          <li><strong>Shortcuts and Expansions:</strong> All keywords, text templates, and form automation macros are stored strictly inside your browser's local sandbox (<code>chrome.storage.local</code>).</li>
+          <li><strong>Zero Remote Servers:</strong> The extension operates entirely offline. We do not maintain any backend servers, analytical trackers, or advertising networks.</li>
+          <li><strong>No Keystroke Logging:</strong> The extension only checks recent buffer characters within active editable elements to detect user-configured trigger shortcuts. Normal typing is never recorded, stored, or transmitted.</li>
+          <li><strong>No Browsing History Tracking:</strong> The extension only reads the current page URL to evaluate user-configured domain Whitelist / Blacklist rules. We never log or store your visited websites.</li>
+        </ul>
+
+        <h2><span class="num">3</span> Permissions Justification</h2>
+        <p>To deliver its functionality, the extension requests only the minimum required Chrome permissions:</p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 25%;">Permission</th>
+                <th>Justification</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>storage</code></td>
+                <td>Used exclusively to save user-defined text shortcuts, expanded snippets, form automation macros, and configuration settings locally within the browser.</td>
+              </tr>
+              <tr>
+                <td><code>contextMenus</code></td>
+                <td>Adds a convenient right-click context menu item when clicking on editable fields or web pages, allowing users to quickly open the Options and shortcut management dashboard.</td>
+              </tr>
+              <tr>
+                <td><code>host_permissions</code><br><code>&lt;all_urls&gt;</code></td>
+                <td>Required to inject a lightweight content script across web pages where users type text (such as email clients, CRMs, and web forms) to detect shortcut triggers and execute form-filling macros. No browsing data or sensitive information is collected or transmitted.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2><span class="num">4</span> Third-Party Disclosure</h2>
+        <p>
+          Because we do not collect any user data, we <strong>never sell, lease, share, trade, or transfer</strong> user information to any third parties under any circumstances.
+        </p>
+
+        <h2><span class="num">5</span> Security &amp; Manifest V3 Compliance</h2>
+        <p>This extension adheres strictly to Google Chrome Web Store Developer Policies:</p>
+        <ul>
+          <li>Fully compliant with <strong>Manifest V3</strong>.</li>
+          <li>Zero remote code execution: no <code>eval()</code>, no dynamic scripts fetched from internet.</li>
+          <li>Markdown rendering is strictly sanitized via DOMPurify before DOM insertion to prevent XSS.</li>
+        </ul>
+
+        <h2><span class="num">6</span> User Data Rights &amp; Deletion</h2>
+        <ul>
+          <li><strong>Full Control:</strong> You can view, modify, or delete any shortcut or macro at any time through the Options dashboard.</li>
+          <li><strong>Data Export:</strong> You can export your entire database to standard JSON or CSV files for backup.</li>
+          <li><strong>Complete Deletion:</strong> Removing/uninstalling the extension immediately and permanently wipes all local data stored in <code>chrome.storage.local</code> from your machine.</li>
+        </ul>
+
+        <h2><span class="num">7</span> Contact Us</h2>
+        <p>If you have any questions, inquiries, or feedback regarding this Privacy Policy, please reach out to:</p>
+        <ul>
+          <li><strong>Support Email:</strong> <a href="mailto:support@autotextexpander.example">support@autotextexpander.example</a></li>
+          <li><strong>Developer Portal:</strong> Chrome Web Store Support Page</li>
+        </ul>
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 Auto Text Expander. All rights reserved. Built with privacy and speed in mind.</p>
+    </footer>
+  </div>
+
+  <script>
+    function setLanguage(lang) {
+      document.getElementById('content-vi').classList.toggle('active-lang', lang === 'vi');
+      document.getElementById('content-en').classList.toggle('active-lang', lang === 'en');
+      
+      document.getElementById('btn-vi').classList.toggle('active', lang === 'vi');
+      document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+
+      document.documentElement.lang = lang;
+    }
+  </script>
+</body>
+</html>

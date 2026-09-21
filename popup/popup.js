@@ -214,10 +214,13 @@
     const query = (popupSearch.value || '').toLowerCase().trim();
     const filtered = snippets.filter(s => {
       if (!query) return true;
+      const tagsStr = Array.isArray(s.tags) ? s.tags.join(' ').toLowerCase() : '';
       return (
         s.shortcut.toLowerCase().includes(query) ||
         (s.label && s.label.toLowerCase().includes(query)) ||
-        (s.content && s.content.toLowerCase().includes(query))
+        (s.content && s.content.toLowerCase().includes(query)) ||
+        (s.category && s.category.toLowerCase().includes(query)) ||
+        tagsStr.includes(query)
       );
     });
 
@@ -233,13 +236,16 @@
       return;
     }
 
+    const catEmoji = { work: '💼', support: '💬', personal: '👤', dev: '💻', general: '📁' };
+
     filtered.forEach(s => {
       const item = document.createElement('div');
       item.className = 'quick-item';
+      const emoji = catEmoji[s.category] || '';
       item.innerHTML = `
         <div class="quick-item-left">
           <span class="quick-sc">${escapeHtml(s.shortcut)}</span>
-          <span class="quick-lb">${escapeHtml(s.label || s.content.substring(0, 30))}</span>
+          <span class="quick-lb">${emoji ? emoji + ' ' : ''}${escapeHtml(s.label || s.content.substring(0, 30))}</span>
         </div>
         <span class="quick-item-copy">Sao chép</span>
       `;

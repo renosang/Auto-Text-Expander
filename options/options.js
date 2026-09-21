@@ -9,6 +9,8 @@
       label: "Email cá nhân",
       content: "contact@example.com",
       renderRichText: false,
+      category: "personal",
+      tags: ["email", "contact"],
       createdAt: Date.now(),
       updatedAt: Date.now()
     },
@@ -16,31 +18,73 @@
       id: "default-2",
       shortcut: ":sig",
       label: "Chữ ký công việc Markdown",
-      content: "**Trân trọng,**\n\n**Nguyễn Văn A** | *Senior Product Specialist*\n- Phone: `+84 987 654 321`\n- Website: [mycompany.vn](https://mycompany.vn)",
+      content: "**Trân trọng,**\n\n**Nguyễn Văn A** | *Senior Product Specialist*\n- Phone: `+84 987 654 321`\n- Website: [mycompany.vn](https://mycompany.vn)\n\n{{cursor}}",
       renderRichText: true,
+      category: "work",
+      tags: ["signature", "email", "work"],
       createdAt: Date.now(),
       updatedAt: Date.now()
     },
     {
       id: "default-3",
-      shortcut: ":meeting",
-      label: "Mẫu mời họp nhanh",
-      content: "Chào bạn,\n\nMình xin phép gửi link tham gia buổi họp thảo luận tiến độ dự án:\n- **Thời gian:** 10:00 AM (Thứ Hai)\n- **Phòng họp:** [Google Meet](https://meet.google.com/abc-def-xyz)\n\nHẹn gặp lại bạn!",
+      shortcut: ":cskh",
+      label: "Mẫu CSKH - Xác nhận đơn hàng",
+      content: "Chào bạn **{{name:Quý khách}}**,\n\nĐơn hàng **#{{order_id:DH-1001}}** của bạn đã được tiếp nhận vào lúc {{time}} ngày {{date}}.\n- Trạng thái vận chuyển: **{{choice:Hỏa tốc 2h|Tiêu chuẩn 2-3 ngày|Giao tiết kiệm}}**\n- Địa chỉ giao hàng: {{cursor}}\n\nCảm ơn bạn đã tin tưởng ủng hộ!",
       renderRichText: true,
+      category: "support",
+      tags: ["cskh", "order", "support"],
       createdAt: Date.now(),
       updatedAt: Date.now()
     },
     {
       id: "default-4",
+      shortcut: ":meeting",
+      label: "Mẫu mời họp nhanh",
+      content: "Chào team,\n\nMình xin phép gửi link tham gia buổi họp thảo luận tiến độ dự án:\n- **Thời gian:** 10:00 AM ({{date+1d:DD/MM/YYYY}})\n- **Phòng họp:** [Google Meet](https://meet.google.com/abc-def-xyz)\n\nNội dung chính:\n{{cursor}}\n\nHẹn gặp lại mọi người!",
+      renderRichText: true,
+      category: "work",
+      tags: ["meeting", "work"],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    },
+    {
+      id: "default-5",
       shortcut: ":addr",
       label: "Địa chỉ văn phòng",
       content: "Tầng 12, Tòa nhà Landmark, 123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
       renderRichText: false,
+      category: "general",
+      tags: ["address", "office"],
       createdAt: Date.now(),
       updatedAt: Date.now()
     }
   ];
 
+  const DEFAULT_CATEGORIES = [
+    { id: 'general', label: 'Chung', icon: 'folder' },
+    { id: 'work', label: 'Công việc', icon: 'briefcase' },
+    { id: 'support', label: 'CSKH', icon: 'message' },
+    { id: 'personal', label: 'Cá nhân', icon: 'user' },
+    { id: 'dev', label: 'Lập trình', icon: 'code' }
+  ];
+
+  const CATEGORY_ICONS = {
+    grid: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>',
+    folder: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>',
+    briefcase: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
+    message: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>',
+    user: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    code: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>',
+    tag: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>',
+    star: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>',
+    zap: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>',
+    heart: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>',
+    shopping: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>',
+    bookmark: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>',
+    shield: '<svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>'
+  };
+
+  let categories = [...DEFAULT_CATEGORIES];
   let snippets = [];
   let macros = [];
   let currentEditingMacro = null;
@@ -52,10 +96,13 @@
       "*://password-manager.com/*"
     ],
     triggerType: 'immediate',
-    theme: 'dark'
+    theme: 'light',
+    macroSpeed: 'safe'
   };
 
   let currentEditingId = null;
+  let currentCategoryFilter = 'all';
+  let currentSortMode = 'az';
   let importedFileData = null;
   let toastTimer = null;
 
@@ -67,11 +114,15 @@
   const searchInput = document.getElementById('search-input');
   const btnCreateNew = document.getElementById('btn-create-new');
   const listCounter = document.getElementById('list-counter');
+  const categoryFilterBar = document.getElementById('category-filter-bar');
+  const btnSortList = document.getElementById('btn-sort-list');
 
   // Form Elements
   const editSnippetId = document.getElementById('edit-snippet-id');
   const inputShortcut = document.getElementById('input-shortcut');
   const inputLabel = document.getElementById('input-label');
+  const selectCategory = document.getElementById('select-category');
+  const inputTags = document.getElementById('input-tags');
   const inputContent = document.getElementById('input-content');
   const checkRichText = document.getElementById('check-rich-text');
   const editorTitle = document.getElementById('editor-title');
@@ -137,6 +188,10 @@
     await loadData();
     setupTheme();
     setupNavigation();
+    renderCategories();
+    setupCategoryModal();
+    setupSorting();
+    setupVariableToolbar();
     setupEditor();
     setupMarkdownToolbar();
     setupInlineTest();
@@ -153,7 +208,7 @@
   async function loadData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros']);
+        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros', 'categories']);
         if (data.snippets && Array.isArray(data.snippets) && data.snippets.length > 0) {
           snippets = data.snippets;
         } else {
@@ -163,6 +218,11 @@
         if (data.macros && Array.isArray(data.macros)) {
           macros = data.macros;
         }
+        if (data.categories && Array.isArray(data.categories) && data.categories.length > 0) {
+          categories = data.categories;
+        } else {
+          categories = [...DEFAULT_CATEGORIES];
+        }
         if (data.settings) {
           settings = { ...settings, ...data.settings };
         }
@@ -171,6 +231,7 @@
         const localSnippets = localStorage.getItem('ate_snippets');
         const localMacros = localStorage.getItem('ate_macros');
         const localSettings = localStorage.getItem('ate_settings');
+        const localCats = localStorage.getItem('ate_categories');
         if (localSnippets) {
           try { snippets = JSON.parse(localSnippets); } catch (e) { snippets = [...DEFAULT_SNIPPETS]; }
         } else {
@@ -180,6 +241,12 @@
         if (localMacros) {
           try { macros = JSON.parse(localMacros); } catch (e) { macros = []; }
         }
+        if (localCats) {
+          try { categories = JSON.parse(localCats); } catch (e) { categories = [...DEFAULT_CATEGORIES]; }
+        } else {
+          categories = [...DEFAULT_CATEGORIES];
+          localStorage.setItem('ate_categories', JSON.stringify(categories));
+        }
         if (localSettings) {
           try { settings = { ...settings, ...JSON.parse(localSettings) }; } catch (e) {}
         }
@@ -187,17 +254,19 @@
     } catch (e) {
       console.warn('Nạp dữ liệu dự phòng:', e);
       snippets = [...DEFAULT_SNIPPETS];
+      categories = [...DEFAULT_CATEGORIES];
     }
   }
 
   async function saveData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        await chrome.storage.local.set({ snippets, settings, macros });
+        await chrome.storage.local.set({ snippets, settings, macros, categories });
       } else {
         localStorage.setItem('ate_snippets', JSON.stringify(snippets));
         localStorage.setItem('ate_settings', JSON.stringify(settings));
         localStorage.setItem('ate_macros', JSON.stringify(macros));
+        localStorage.setItem('ate_categories', JSON.stringify(categories));
       }
       updateBadge();
     } catch (e) {
@@ -253,17 +322,258 @@
   }
 
   // -------------------------------------------------------------
+  // DYNAMIC VARIABLE & PREVIEW HELPERS
+  // -------------------------------------------------------------
+  function formatDatePreview(d, fmt = 'DD/MM/YYYY') {
+    if (!fmt) fmt = 'DD/MM/YYYY';
+    const YYYY = String(d.getFullYear());
+    const YY = YYYY.slice(-2);
+    const MM = String(d.getMonth() + 1).padStart(2, '0');
+    const DD = String(d.getDate()).padStart(2, '0');
+    const HH = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+
+    return fmt
+      .replace(/YYYY/g, YYYY)
+      .replace(/YY/g, YY)
+      .replace(/MM/g, MM)
+      .replace(/DD/g, DD)
+      .replace(/HH/g, HH)
+      .replace(/mm/g, mm)
+      .replace(/ss/g, ss);
+  }
+
+  function resolveVariablesPreview(text) {
+    if (!text) return '';
+    let result = text;
+    const now = new Date();
+
+    result = result.replace(/\{\{date([+-]\d+)d(?::([^}]+))?\}\}/gi, (match, daysStr, fmt) => {
+      const days = parseInt(daysStr, 10) || 0;
+      const targetDate = new Date(now.getTime() + days * 86400000);
+      return formatDatePreview(targetDate, fmt || 'DD/MM/YYYY');
+    });
+
+    result = result.replace(/\{\{date:([^}]+)\}\}/gi, (match, fmt) => formatDatePreview(now, fmt));
+    result = result.replace(/\{\{date\}\}/gi, () => formatDatePreview(now, 'DD/MM/YYYY'));
+    result = result.replace(/\{\{time:([^}]+)\}\}/gi, (match, fmt) => formatDatePreview(now, fmt));
+    result = result.replace(/\{\{time\}\}/gi, () => formatDatePreview(now, 'HH:mm'));
+    result = result.replace(/\{\{url\}\}/gi, () => window.location.href);
+    result = result.replace(/\{\{domain\}\}/gi, () => window.location.hostname || 'chrome-extension');
+    result = result.replace(/\{\{title\}\}/gi, () => document.title || 'Auto Text Expander');
+    result = result.replace(/\{\{clipboard\}\}/gi, '[Nội dung Clipboard]');
+    result = result.replace(/\{\{cursor\}\}/gi, '');
+
+    result = result.replace(/\{\{choice:(?:[^:]+:)?([^}]+)\}\}/gi, (match, optionsStr) => {
+      const opts = optionsStr.split('|');
+      return opts[0] ? opts[0].trim() : match;
+    });
+
+    result = result.replace(/\{\{([a-zA-Z0-9_\u00C0-\u1EF9]+)(?::([^}]+))?\}\}/gi, (match, fieldName, defaultVal) => {
+      return defaultVal ? defaultVal.trim() : `[${fieldName}]`;
+    });
+
+    return result;
+  }
+
+  // -------------------------------------------------------------
+  // DYNAMIC CATEGORIES (SVG ICONS & USER-CREATED CATEGORIES)
+  // -------------------------------------------------------------
+  function renderCategories() {
+    if (!categoryFilterBar) return;
+
+    let html = `
+      <button type="button" class="btn-cat-pill ${currentCategoryFilter === 'all' ? 'active' : ''}" data-cat="all">
+        ${CATEGORY_ICONS.grid}
+        <span>Tất cả</span>
+      </button>
+    `;
+
+    categories.forEach(cat => {
+      const iconSvg = CATEGORY_ICONS[cat.icon] || CATEGORY_ICONS.folder;
+      html += `
+        <button type="button" class="btn-cat-pill ${currentCategoryFilter === cat.id ? 'active' : ''}" data-cat="${cat.id}">
+          ${iconSvg}
+          <span>${escapeHtml(cat.label)}</span>
+        </button>
+      `;
+    });
+
+    html += `
+      <button type="button" class="btn-add-cat-pill" id="btn-open-category-modal" title="Tạo thêm danh mục mới">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <span>Danh mục</span>
+      </button>
+    `;
+
+    categoryFilterBar.innerHTML = html;
+
+    // Attach click events
+    categoryFilterBar.querySelectorAll('.btn-cat-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        categoryFilterBar.querySelectorAll('.btn-cat-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentCategoryFilter = pill.getAttribute('data-cat') || 'all';
+        renderSnippets();
+      });
+    });
+
+    const btnOpenModal = document.getElementById('btn-open-category-modal');
+    if (btnOpenModal) {
+      btnOpenModal.addEventListener('click', openCategoryModal);
+    }
+
+    // Sync selectCategory dropdown
+    if (selectCategory) {
+      const currentSelected = selectCategory.value || 'general';
+      selectCategory.innerHTML = categories.map(cat => 
+        `<option value="${cat.id}">${escapeHtml(cat.label)}</option>`
+      ).join('');
+      selectCategory.value = currentSelected;
+      if (!selectCategory.value && categories.length > 0) {
+        selectCategory.value = categories[0].id;
+      }
+    }
+  }
+
+  function setupCategoryModal() {
+    const categoryModal = document.getElementById('category-modal');
+    const btnCloseCatModal = document.getElementById('btn-close-category-modal');
+    const btnCancelCatModal = document.getElementById('btn-cancel-category-modal');
+    const btnSaveCat = document.getElementById('btn-save-new-category');
+    const inputNewCatName = document.getElementById('input-new-cat-name');
+    const catIconPicker = document.getElementById('cat-icon-picker');
+    const inputNewCatIcon = document.getElementById('input-new-cat-icon');
+
+    if (!categoryModal) return;
+
+    // Populate icon choices
+    const availableIcons = ['folder', 'briefcase', 'message', 'user', 'code', 'tag', 'star', 'zap', 'heart', 'shopping', 'bookmark', 'shield'];
+    if (catIconPicker) {
+      catIconPicker.innerHTML = availableIcons.map((ic, i) => `
+        <button type="button" class="cat-icon-choice ${i === 0 ? 'selected' : ''}" data-icon="${ic}" title="${ic}">
+          ${CATEGORY_ICONS[ic]}
+        </button>
+      `).join('');
+
+      catIconPicker.querySelectorAll('.cat-icon-choice').forEach(btn => {
+        btn.addEventListener('click', () => {
+          catIconPicker.querySelectorAll('.cat-icon-choice').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          if (inputNewCatIcon) inputNewCatIcon.value = btn.getAttribute('data-icon');
+        });
+      });
+    }
+
+    if (btnCloseCatModal) btnCloseCatModal.addEventListener('click', closeCategoryModal);
+    if (btnCancelCatModal) btnCancelCatModal.addEventListener('click', closeCategoryModal);
+
+    if (btnSaveCat) {
+      btnSaveCat.addEventListener('click', async () => {
+        const name = (inputNewCatName ? inputNewCatName.value : '').trim();
+        if (!name) {
+          showToast('Vui lòng nhập tên danh mục!', 'error');
+          if (inputNewCatName) inputNewCatName.focus();
+          return;
+        }
+
+        const icon = (inputNewCatIcon && inputNewCatIcon.value) ? inputNewCatIcon.value : 'folder';
+        const slug = 'cat_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 5);
+
+        categories.push({
+          id: slug,
+          label: name,
+          icon: icon
+        });
+
+        await saveData();
+        renderCategories();
+        renderSnippets();
+        closeCategoryModal();
+        showToast(`Đã tạo danh mục "${name}" thành công!`, 'success');
+      });
+    }
+  }
+
+  function openCategoryModal() {
+    const categoryModal = document.getElementById('category-modal');
+    const inputNewCatName = document.getElementById('input-new-cat-name');
+    if (!categoryModal) return;
+    if (inputNewCatName) {
+      inputNewCatName.value = '';
+      inputNewCatName.focus();
+    }
+    categoryModal.style.display = 'flex';
+  }
+
+  function closeCategoryModal() {
+    const categoryModal = document.getElementById('category-modal');
+    if (categoryModal) categoryModal.style.display = 'none';
+  }
+
+  function setupSorting() {
+    if (!btnSortList) return;
+    const sortModes = [
+      { id: 'az', label: 'Sắp xếp: A-Z' },
+      { id: 'za', label: 'Sắp xếp: Z-A' },
+      { id: 'newest', label: 'Sắp xếp: Mới nhất' }
+    ];
+    let currentIndex = 0;
+
+    btnSortList.addEventListener('click', () => {
+      currentIndex = (currentIndex + 1) % sortModes.length;
+      currentSortMode = sortModes[currentIndex].id;
+      const span = btnSortList.querySelector('span');
+      if (span) span.textContent = sortModes[currentIndex].label;
+      renderSnippets();
+    });
+  }
+
+  function setupVariableToolbar() {
+    const varChips = document.querySelectorAll('.btn-var-chip');
+    varChips.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const varTag = btn.getAttribute('data-var');
+        if (!varTag || !inputContent) return;
+
+        const start = inputContent.selectionStart;
+        const end = inputContent.selectionEnd;
+        const text = inputContent.value;
+
+        inputContent.value = text.slice(0, start) + varTag + text.slice(end);
+        const newPos = start + varTag.length;
+        inputContent.setSelectionRange(newPos, newPos);
+        inputContent.focus();
+
+        if (tabPreview.classList.contains('active')) {
+          switchToPreviewTab();
+        }
+      });
+    });
+  }
+
+  // -------------------------------------------------------------
   // SNIPPETS CRUD & RENDER
   // -------------------------------------------------------------
   function renderSnippets() {
     updateBadge();
     const query = (searchInput.value || '').toLowerCase().trim();
     const filtered = snippets.filter(s => {
+      // 1. Lọc theo danh mục
+      if (currentCategoryFilter !== 'all') {
+        const cat = s.category || 'general';
+        if (cat !== currentCategoryFilter) return false;
+      }
+
+      // 2. Lọc theo từ khóa tìm kiếm (shortcut, label, content, tags)
       if (!query) return true;
+      const tagsStr = Array.isArray(s.tags) ? s.tags.join(' ').toLowerCase() : '';
       return (
         s.shortcut.toLowerCase().includes(query) ||
         (s.label && s.label.toLowerCase().includes(query)) ||
-        (s.content && s.content.toLowerCase().includes(query))
+        (s.content && s.content.toLowerCase().includes(query)) ||
+        tagsStr.includes(query)
       );
     });
 
@@ -271,29 +581,61 @@
     if (filtered.length === 0) {
       snippetCardsList.innerHTML = `
         <div style="padding: 30px 10px; text-align: center; color: var(--text-muted); font-size: 13px;">
-          ${query ? 'Không tìm thấy phím tắt phù hợp.' : 'Chưa có phím tắt nào. Hãy bấm "Tạo Phím Tắt Mới"!'}
+          ${query || currentCategoryFilter !== 'all' ? 'Không tìm thấy phím tắt phù hợp trong mục này.' : 'Chưa có phím tắt nào. Hãy bấm "Tạo Phím Tắt Mới"!'}
         </div>
       `;
       return;
     }
 
-    filtered.forEach(s => {
+    // Sắp xếp
+    filtered.sort((a, b) => {
+      if (currentSortMode === 'az') {
+        return (a.shortcut || '').localeCompare(b.shortcut || '');
+      } else if (currentSortMode === 'za') {
+        return (b.shortcut || '').localeCompare(a.shortcut || '');
+      } else if (currentSortMode === 'newest') {
+        return (b.createdAt || 0) - (a.createdAt || 0);
+      }
+      return 0;
+    });
+
+    filtered.forEach((s, idx) => {
       const card = document.createElement('div');
       card.className = `snippet-item-card ${s.id === currentEditingId ? 'selected' : ''}`;
+      card.style.animationDelay = `${Math.min(idx * 0.035, 0.4)}s`;
+      const cat = s.category || 'general';
+      const catObj = categories.find(c => c.id === cat) || { label: 'Chung', icon: 'folder' };
+      const catSvg = (CATEGORY_ICONS[catObj.icon] || CATEGORY_ICONS.folder).replace('class="cat-pill-svg"', 'class="cat-badge-icon"');
+      const catBadgeHtml = `<span class="item-badge-category">${catSvg}<span>${escapeHtml(catObj.label)}</span></span>`;
+      const tags = Array.isArray(s.tags) ? s.tags : [];
+      const tagsHtml = tags.length > 0
+        ? `<div class="item-tags-list">${tags.map(t => `
+            <span class="item-tag-badge">
+              <svg class="tag-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+              <span>${escapeHtml(t)}</span>
+            </span>`).join('')}</div>`
+        : '';
+
       card.innerHTML = `
         <div class="item-card-top">
           <span class="item-shortcut">${escapeHtml(s.shortcut)}</span>
-          ${s.renderRichText ? '<span class="item-badge-rich">Rich Text</span>' : ''}
+          <div style="display:flex;align-items:center;gap:5px;">
+            ${catBadgeHtml}
+            ${s.renderRichText ? '<span class="item-badge-rich">Rich Text</span>' : ''}
+          </div>
         </div>
         <div class="item-label">${escapeHtml(s.label || 'Không có tên gợi nhớ')}</div>
         <div class="item-preview-text">${escapeHtml(s.content || '')}</div>
+        ${tagsHtml}
       `;
 
       card.addEventListener('click', () => loadSnippetIntoEditor(s.id));
       snippetCardsList.appendChild(card);
     });
 
-    // Nếu chưa chọn snippet nào và có sẵn danh sách, tự động nạp snippet đầu tiên vào form
     if (!currentEditingId && filtered.length > 0) {
       loadSnippetIntoEditor(filtered[0].id);
     }
@@ -303,11 +645,43 @@
     searchInput.addEventListener('input', () => renderSnippets());
   }
 
+  let currentEditorTags = [];
+
+  function renderEditorTags() {
+    const editorTagBadges = document.getElementById('editor-tag-badges');
+    if (!editorTagBadges) return;
+    editorTagBadges.innerHTML = currentEditorTags.map(t => `
+      <span class="editor-tag-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+          <line x1="7" y1="7" x2="7.01" y2="7"></line>
+        </svg>
+        <span>${escapeHtml(t)}</span>
+        <button type="button" class="btn-remove-tag" data-tag="${escapeHtml(t)}" title="Xóa thẻ">&times;</button>
+      </span>
+    `).join('');
+
+    editorTagBadges.querySelectorAll('.btn-remove-tag').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const tagToRemove = btn.getAttribute('data-tag');
+        currentEditorTags = currentEditorTags.filter(t => t !== tagToRemove);
+        renderEditorTags();
+        if (inputTags) inputTags.focus();
+      });
+    });
+  }
+
   function resetEditor() {
     currentEditingId = null;
     editSnippetId.value = '';
     inputShortcut.value = '';
     inputLabel.value = '';
+    if (selectCategory) selectCategory.value = 'general';
+    currentEditorTags = [];
+    renderEditorTags();
+    if (inputTags) inputTags.value = '';
     inputContent.value = '';
     checkRichText.checked = true;
     editorTitle.textContent = 'Tạo Phím Tắt Mới';
@@ -316,10 +690,7 @@
 
     switchToWriteTab();
     if (inlineTestInput) inlineTestInput.value = '';
-    if (inlineTestStatus) {
-      inlineTestStatus.textContent = 'Chưa gõ thử';
-      inlineTestStatus.className = 'inline-test-status';
-    }
+    setInlineTestStatus('Chưa gõ thử');
 
     document.querySelectorAll('.snippet-item-card').forEach(c => c.classList.remove('selected'));
   }
@@ -332,6 +703,10 @@
     editSnippetId.value = s.id;
     inputShortcut.value = s.shortcut;
     inputLabel.value = s.label || '';
+    if (selectCategory) selectCategory.value = s.category || 'general';
+    currentEditorTags = Array.isArray(s.tags) ? [...s.tags] : (s.tags ? String(s.tags).split(',').map(t => t.trim()).filter(Boolean) : []);
+    renderEditorTags();
+    if (inputTags) inputTags.value = '';
     inputContent.value = s.content || '';
     checkRichText.checked = s.renderRichText !== false;
     editorTitle.textContent = `Chỉnh Sửa: ${s.shortcut}`;
@@ -340,10 +715,7 @@
 
     switchToWriteTab();
     if (inlineTestInput) inlineTestInput.value = '';
-    if (inlineTestStatus) {
-      inlineTestStatus.textContent = `Sẵn sàng test phím tắt "${s.shortcut}"`;
-      inlineTestStatus.className = 'inline-test-status';
-    }
+    setInlineTestStatus(`Sẵn sàng test phím tắt "${s.shortcut}"`);
 
     renderSnippets();
   }
@@ -375,6 +747,17 @@
     btnSaveSnippet.addEventListener('click', async () => {
       const shortcut = inputShortcut.value.trim();
       const label = inputLabel.value.trim();
+      const category = selectCategory ? selectCategory.value : 'general';
+
+      // Collect any pending tag from inputTags
+      const pendingTag = (inputTags ? inputTags.value : '').replace(/,/g, '').trim();
+      if (pendingTag && !currentEditorTags.includes(pendingTag)) {
+        currentEditorTags.push(pendingTag);
+        renderEditorTags();
+        if (inputTags) inputTags.value = '';
+      }
+      const tags = [...currentEditorTags];
+
       const content = inputContent.value;
       const renderRichText = checkRichText.checked;
 
@@ -390,7 +773,6 @@
         return;
       }
 
-      // Kiểm tra trùng lặp phím tắt
       const duplicate = snippets.find(s => s.shortcut === shortcut && s.id !== currentEditingId);
       if (duplicate) {
         showToast(`Phím tắt "${shortcut}" đã tồn tại! Vui lòng chọn từ khóa khác.`, 'error');
@@ -400,13 +782,14 @@
 
       const now = Date.now();
       if (currentEditingId) {
-        // Cập nhật
         const index = snippets.findIndex(s => s.id === currentEditingId);
         if (index !== -1) {
           snippets[index] = {
             ...snippets[index],
             shortcut,
             label,
+            category,
+            tags,
             content,
             renderRichText,
             updatedAt: now
@@ -414,11 +797,12 @@
           showToast(`Đã cập nhật phím tắt "${shortcut}"`, 'success');
         }
       } else {
-        // Tạo mới
         const newSnippet = {
           id: 'snip_' + now + '_' + Math.random().toString(36).substring(2, 7),
           shortcut,
           label,
+          category,
+          tags,
           content,
           renderRichText,
           createdAt: now,
@@ -433,6 +817,39 @@
       renderSnippets();
       loadSnippetIntoEditor(currentEditingId);
     });
+
+    const propTagsBox = document.getElementById('prop-tags-box');
+    if (propTagsBox && inputTags) {
+      propTagsBox.addEventListener('click', (e) => {
+        if (e.target !== inputTags && !e.target.closest('.btn-remove-tag')) {
+          inputTags.focus();
+        }
+      });
+
+      inputTags.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+          e.preventDefault();
+          const val = inputTags.value.replace(/,/g, '').trim();
+          if (val && !currentEditorTags.includes(val)) {
+            currentEditorTags.push(val);
+            renderEditorTags();
+          }
+          inputTags.value = '';
+        } else if (e.key === 'Backspace' && inputTags.value === '' && currentEditorTags.length > 0) {
+          currentEditorTags.pop();
+          renderEditorTags();
+        }
+      });
+
+      inputTags.addEventListener('blur', () => {
+        const val = inputTags.value.replace(/,/g, '').trim();
+        if (val && !currentEditorTags.includes(val)) {
+          currentEditorTags.push(val);
+          renderEditorTags();
+          inputTags.value = '';
+        }
+      });
+    }
   }
 
   // -------------------------------------------------------------
@@ -465,17 +882,78 @@
     previewContainer.style.display = 'block';
 
     const raw = inputContent.value || '*Không có nội dung để xem trước.*';
-    let cleanHtml = '';
+    const previewContent = resolveVariablesPreview(raw);
+    previewContainer.innerHTML = renderMarkdownToHtml(previewContent);
+  }
+
+  function renderMarkdownToHtml(markdownText) {
+    if (!markdownText) return '';
     try {
-      if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-        cleanHtml = DOMPurify.sanitize(marked.parse(raw));
-      } else {
-        cleanHtml = escapeHtml(raw).replace(/\n/g, '<br/>');
+      const md = (typeof marked !== 'undefined' && marked) ? marked : (typeof window !== 'undefined' ? window.marked : null);
+      if (md) {
+        let rawHtml = '';
+        if (typeof md.parse === 'function') {
+          rawHtml = md.parse(markdownText);
+        } else if (typeof md === 'function') {
+          rawHtml = md(markdownText);
+        }
+        if (rawHtml) {
+          const purifier = (typeof DOMPurify !== 'undefined' && DOMPurify) ? DOMPurify : (typeof window !== 'undefined' ? window.DOMPurify : null);
+          if (purifier && typeof purifier.sanitize === 'function') {
+            return purifier.sanitize(rawHtml);
+          }
+          return rawHtml;
+        }
       }
-    } catch (e) {
-      cleanHtml = escapeHtml(raw).replace(/\n/g, '<br/>');
+    } catch (err) {
+      console.warn('Marked.js parse error, using fallback:', err);
     }
-    previewContainer.innerHTML = cleanHtml;
+    return parseBasicMarkdown(markdownText);
+  }
+
+  function parseBasicMarkdown(md) {
+    if (!md) return '';
+    let out = escapeHtml(md);
+
+    // Code blocks ```lang\ncode\n```
+    out = out.replace(/```([\s\S]*?)```/g, (match, code) => {
+      return `<pre class="preview-pre"><code>${code.trim()}</code></pre>`;
+    });
+
+    // Inline code `code`
+    out = out.replace(/`([^`]+)`/g, '<code class="preview-code">$1</code>');
+
+    // Headers (# h1 .. #### h4)
+    out = out.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
+    out = out.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+    out = out.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+    out = out.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+    // Bold & Italic
+    out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    out = out.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+    out = out.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    out = out.replace(/_([^_]+)_/g, '<em>$1</em>');
+    out = out.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+    // Blockquote
+    out = out.replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>');
+
+    // Lists (- item)
+    out = out.replace(/^[*-] (.*?)$/gm, '<li>$1</li>');
+    out = out.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
+
+    // Links [text](url)
+    out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+    // Line breaks
+    out = out.replace(/\n/g, '<br/>');
+
+    // Clean up adjacent list tags
+    out = out.replace(/<\/ul><br\/><ul>/g, '');
+    out = out.replace(/<\/ul><ul>/g, '');
+
+    return out;
   }
 
   function applyMarkdownFormat(type) {
@@ -584,6 +1062,12 @@
     return str.trim();
   }
 
+  function setInlineTestStatus(message, isSuccess = false) {
+    if (!inlineTestStatus) return;
+    inlineTestStatus.className = `inline-test-status ${isSuccess ? 'success' : ''}`;
+    inlineTestStatus.innerHTML = `<span class="status-icon-dot"></span><span>${escapeHtml(message)}</span>`;
+  }
+
   // -------------------------------------------------------------
   // INLINE TEST BOX (TEST TRƯỚC KHI SAVE)
   // -------------------------------------------------------------
@@ -595,14 +1079,17 @@
       const draftShortcut = inputShortcut.value.trim();
       const draftContent = inputContent.value;
 
-      // 1. Kiểm tra nếu khớp phím tắt nháp hiện tại đang sửa/tạo (loại bỏ markdown vì inlineTestInput là input 1 dòng)
+      // 1. Kiểm tra nếu khớp phím tắt nháp hiện tại đang sửa/tạo
       if (draftShortcut && val.endsWith(draftShortcut)) {
         const rawContent = draftContent || '(Nội dung phím tắt đang trống)';
-        const expanded = stripMarkdown(rawContent, true);
+        const previewContent = resolveVariablesPreview(rawContent);
+        let expanded = stripMarkdown(previewContent, true);
+        const cursorIdx = expanded.indexOf('{{cursor}}');
+        if (cursorIdx !== -1) expanded = expanded.replace('{{cursor}}', '');
+
         const start = val.length - draftShortcut.length;
         inlineTestInput.value = val.substring(0, start) + expanded;
-        inlineTestStatus.textContent = `✓ Đã bung phím tắt thử nghiệm "${draftShortcut}" (Đã lọc Markdown thành Plain Text)!`;
-        inlineTestStatus.className = 'inline-test-status success';
+        setInlineTestStatus(`Đã bung phím tắt thử nghiệm "${draftShortcut}" (Đã phân giải biến)!`, true);
         return;
       }
 
@@ -610,22 +1097,23 @@
       for (const s of snippets) {
         if (s.shortcut && val.endsWith(s.shortcut)) {
           const start = val.length - s.shortcut.length;
-          const expanded = stripMarkdown(s.content, true);
+          const previewContent = resolveVariablesPreview(s.content);
+          let expanded = stripMarkdown(previewContent, true);
+          const cursorIdx = expanded.indexOf('{{cursor}}');
+          if (cursorIdx !== -1) expanded = expanded.replace('{{cursor}}', '');
+
           inlineTestInput.value = val.substring(0, start) + expanded;
-          inlineTestStatus.textContent = `✓ Đã bung phím tắt "${s.shortcut}" (Plain Text)!`;
-          inlineTestStatus.className = 'inline-test-status success';
+          setInlineTestStatus(`Đã bung phím tắt "${s.shortcut}" (Đã phân giải biến)!`, true);
           return;
         }
       }
 
-      inlineTestStatus.textContent = 'Đang theo dõi phím gõ...';
-      inlineTestStatus.className = 'inline-test-status';
+      setInlineTestStatus('Đang theo dõi phím gõ...');
     });
 
     btnClearInlineTest.addEventListener('click', () => {
       inlineTestInput.value = '';
-      inlineTestStatus.textContent = 'Đã xóa. Sẵn sàng thử lại!';
-      inlineTestStatus.className = 'inline-test-status';
+      setInlineTestStatus('Đã xóa. Sẵn sàng thử lại!');
       inlineTestInput.focus();
     });
   }
@@ -643,9 +1131,17 @@
           if (s.shortcut && textBefore.endsWith(s.shortcut)) {
             const start = caret - s.shortcut.length;
             const isSingleLine = field.tagName === 'INPUT';
-            const cleanText = stripMarkdown(s.content, isSingleLine);
+            const previewContent = resolveVariablesPreview(s.content);
+            let cleanText = stripMarkdown(previewContent, isSingleLine);
+            let cursorIdx = cleanText.indexOf('{{cursor}}');
+            if (cursorIdx !== -1) cleanText = cleanText.replace('{{cursor}}', '');
+
             field.setRangeText(cleanText, start, caret, 'end');
-            showToast(`⚡ Đã mở rộng "${s.shortcut}" trong Test Lab (Plain Text)`, 'success');
+            if (cursorIdx !== -1) {
+              const targetPos = start + cursorIdx;
+              field.setSelectionRange(targetPos, targetPos);
+            }
+            showToast(`Đã mở rộng "${s.shortcut}" trong Test Lab (Đã phân giải biến)`, 'success');
             return;
           }
         }
@@ -678,12 +1174,13 @@
             sel.removeAllRanges();
             sel.addRange(range);
 
+            const previewContent = resolveVariablesPreview(s.content);
             if (s.renderRichText && typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-              const html = DOMPurify.sanitize(marked.parse(s.content));
+              const html = DOMPurify.sanitize(marked.parse(previewContent));
               document.execCommand('insertHTML', false, html);
-              showToast(`⚡ Đã mở rộng Rich Text "${s.shortcut}" trong Test Lab`, 'success');
+              showToast(`Đã mở rộng Rich Text "${s.shortcut}" trong Test Lab`, 'success');
             } else {
-              const plainText = stripMarkdown(s.content, false);
+              const plainText = stripMarkdown(previewContent, false).replace('{{cursor}}', '');
               document.execCommand('insertText', false, plainText);
               showToast(`⚡ Đã mở rộng "${s.shortcut}" (Plain Text)`, 'success');
             }
@@ -693,11 +1190,76 @@
       });
     }
 
+    // Xử lý Custom Combobox trong Test Lab
+    const comboboxTrigger = document.getElementById('test-combobox-trigger');
+    const comboboxMenu = document.getElementById('test-combobox-menu');
+    const comboboxText = document.getElementById('test-combobox-text');
+    const prioritySelect = document.getElementById('test-priority-select');
+    const statusSelect = document.getElementById('test-status-select');
+    const btnTestSubmit = document.getElementById('btn-test-submit-form');
+    const dropdownStatus = document.getElementById('test-dropdown-status');
+
+    if (comboboxTrigger && comboboxMenu) {
+      comboboxTrigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = comboboxMenu.style.display !== 'none';
+        comboboxMenu.style.display = isOpen ? 'none' : 'block';
+        comboboxTrigger.setAttribute('aria-expanded', String(!isOpen));
+      });
+
+      comboboxMenu.querySelectorAll('.custom-combobox-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = opt.getAttribute('data-value');
+          const text = opt.innerText.trim();
+          if (comboboxText) comboboxText.textContent = text;
+          comboboxTrigger.setAttribute('data-value', val);
+          comboboxMenu.querySelectorAll('.custom-combobox-option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          comboboxMenu.style.display = 'none';
+          comboboxTrigger.setAttribute('aria-expanded', 'false');
+          if (dropdownStatus) {
+            dropdownStatus.textContent = `Đã chọn phòng ban: "${text}"`;
+          }
+        });
+      });
+
+      document.addEventListener('click', () => {
+        if (comboboxMenu && comboboxMenu.style.display !== 'none') {
+          comboboxMenu.style.display = 'none';
+          comboboxTrigger?.setAttribute('aria-expanded', 'false');
+        }
+      });
+    }
+
+    if (btnTestSubmit) {
+      btnTestSubmit.addEventListener('click', () => {
+        const pVal = prioritySelect ? prioritySelect.options[prioritySelect.selectedIndex]?.text : '';
+        const sVal = statusSelect ? statusSelect.options[statusSelect.selectedIndex]?.text : '';
+        const dVal = comboboxText ? comboboxText.textContent : '';
+        const msg = `✓ Đã nhận form: [Độ ưu tiên: ${pVal || 'Chưa chọn'}] | [Trạng thái: ${sVal || 'Chưa chọn'}] | [Phòng ban: ${dVal}]`;
+        if (dropdownStatus) {
+          dropdownStatus.textContent = msg;
+          dropdownStatus.style.color = 'var(--primary)';
+        }
+        showToast('✓ Đã gửi dữ liệu biểu mẫu thử nghiệm thành công!', 'success');
+      });
+    }
+
     if (btnClearTestLab) {
       btnClearTestLab.addEventListener('click', () => {
         if (testSingleInput) testSingleInput.value = '';
         if (testMultiTextarea) testMultiTextarea.value = '';
         if (testRichEditor) testRichEditor.innerHTML = '';
+        if (prioritySelect) prioritySelect.selectedIndex = 0;
+        if (statusSelect) statusSelect.selectedIndex = 0;
+        if (comboboxText) comboboxText.textContent = '-- Chọn phòng ban --';
+        if (comboboxTrigger) comboboxTrigger.removeAttribute('data-value');
+        if (comboboxMenu) {
+          comboboxMenu.style.display = 'none';
+          comboboxMenu.querySelectorAll('.custom-combobox-option').forEach(o => o.classList.remove('selected'));
+        }
+        if (dropdownStatus) dropdownStatus.textContent = 'Đã xóa trắng dữ liệu biểu mẫu';
         showToast('Đã xóa trắng các ô thử nghiệm!', 'success');
       });
     }
@@ -724,6 +1286,29 @@
     if (btnCloseStepModal) btnCloseStepModal.addEventListener('click', closeStepModal);
     if (btnCancelStepModal) btnCancelStepModal.addEventListener('click', closeStepModal);
     if (btnSaveStepModal) btnSaveStepModal.addEventListener('click', saveStepModalChanges);
+    if (macroStepModal) {
+      macroStepModal.addEventListener('click', (e) => {
+        if (e.target === macroStepModal) closeStepModal();
+      });
+    }
+
+    // Macro Speed Radio Sync
+    const currentSpeed = settings.macroSpeed || 'safe';
+    const activeSpeedRadio = document.querySelector(`input[name="macro-speed"][value="${currentSpeed}"]`);
+    if (activeSpeedRadio) activeSpeedRadio.checked = true;
+
+    document.querySelectorAll('input[name="macro-speed"]').forEach(radio => {
+      radio.addEventListener('change', async (e) => {
+        settings.macroSpeed = e.target.value;
+        await saveData();
+        const modeLabels = {
+          safe: 'An Toàn & Chuẩn Xác (200ms - Khuyên dùng cho Production)',
+          balanced: 'Cân Bằng (100ms)',
+          turbo: 'Siêu Tốc (40ms)'
+        };
+        showToast(`Đã chuyển sang chế độ: ${modeLabels[settings.macroSpeed] || settings.macroSpeed}`, 'success');
+      });
+    });
   }
 
   function renderMacrosList() {
@@ -733,9 +1318,13 @@
 
     if (macros.length === 0) {
       macrosListContainer.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--card-bg); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle);">
-          <div style="font-size: 36px; margin-bottom: 10px;">⚡</div>
-          <h3 style="color: var(--text-primary); margin-bottom: 6px;">Chưa có kịch bản tự động hóa nào</h3>
+        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle);">
+          <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:14px; background:rgba(99,102,241,0.1); color:var(--primary); margin-bottom:14px;">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </div>
+          <h3 style="color: var(--text-primary); margin-bottom: 6px; font-size:16px;">Chưa có kịch bản tự động hóa nào</h3>
           <p class="help-text" style="max-width: 480px; margin: 0 auto 16px auto;">
             Hãy mở bất kỳ trang web nào và bấm "Ghi Thao Tác" trong Popup tiện ích để tạo kịch bản tự động điền form và gửi đầu tiên của bạn!
           </p>
@@ -762,8 +1351,22 @@
             <div>
               <div class="macro-card-title">${escapeHtml(macro.name)}</div>
               <div class="macro-badges-row">
-                ${macro.shortcut ? `<span class="macro-badge-trigger" title="Từ khóa kích hoạt">${escapeHtml(macro.shortcut)}</span>` : ''}
-                ${macro.hotkey ? `<span class="macro-badge-hotkey" title="Phím nóng bàn phím">${escapeHtml(macro.hotkey)}</span>` : ''}
+                ${macro.shortcut ? `
+                  <span class="macro-badge-trigger" title="Từ khóa kích hoạt">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px; vertical-align:-1px;">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>${escapeHtml(macro.shortcut)}
+                  </span>` : ''}
+                ${macro.hotkey ? `
+                  <span class="macro-badge-hotkey" title="Phím nóng bàn phím">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px; vertical-align:-1px;">
+                      <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                      <line x1="6" y1="8" x2="6.01" y2="8"></line>
+                      <line x1="10" y1="8" x2="10.01" y2="8"></line>
+                      <line x1="14" y1="8" x2="14.01" y2="8"></line>
+                      <line x1="18" y1="8" x2="18.01" y2="8"></line>
+                    </svg>${escapeHtml(macro.hotkey)}
+                  </span>` : ''}
                 <span class="badge-tag">${stepsCount} bước thao tác</span>
               </div>
             </div>
@@ -783,12 +1386,20 @@
 
         <div class="macro-card-actions">
           <div class="macro-actions-left">
-            <button type="button" class="btn btn-secondary btn-edit-steps" style="padding:5px 10px; font-size:12px;">
-              ✏️ Sửa các bước
+            <button type="button" class="btn btn-secondary btn-edit-steps" style="padding:6px 12px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Sửa các bước
             </button>
           </div>
-          <button type="button" class="btn btn-danger-soft btn-delete-macro" style="padding:5px 10px; font-size:12px;">
-            🗑️ Xóa
+          <button type="button" class="btn btn-danger-soft btn-delete-macro" style="padding:6px 12px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Xóa
           </button>
         </div>
       `;
@@ -836,22 +1447,27 @@
       stepRow.dataset.stepIndex = idx;
 
       const isInput = st.type === 'input' || st.type === 'quill' || st.type === 'contenteditable';
+      const isSelect = st.type === 'select' || st.type === 'custom_select';
 
       stepRow.innerHTML = `
         <div class="step-edit-left">
           <span class="step-index-badge">${idx + 1}</span>
           <div class="step-info-col">
-            <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${escapeHtml(st.label || st.type)}</div>
-            <div class="step-selector-code">${escapeHtml(st.selector || '')}</div>
-            ${isInput ? `
-              <div style="margin-top:4px;">
-                <input type="text" class="step-val-input" value="${escapeHtml(st.value || '')}" placeholder="Giá trị điền...">
+            <div style="font-weight:600; font-size:13px; color:var(--text-primary); line-height:1.4;">${escapeHtml(st.label || st.type)}</div>
+            <div class="step-selector-code" title="${escapeHtml(st.selector || '')}">${escapeHtml(st.selector || '')}</div>
+            ${isInput || isSelect ? `
+              <div style="margin-top:6px;">
+                <input type="text" class="step-val-input" value="${escapeHtml(st.value || st.optionText || '')}" placeholder="${isSelect ? 'Lựa chọn cần chọn...' : 'Giá trị điền...'}">
               </div>
             ` : ''}
           </div>
         </div>
-        <button type="button" class="btn btn-danger-soft btn-delete-single-step" title="Xóa bước này" style="padding:4px 8px; font-size:11px;">
-          ✕ Xóa
+        <button type="button" class="btn btn-danger-soft btn-delete-single-step" title="Xóa bước này" style="padding:5px 9px; font-size:11.5px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          Xóa
         </button>
       `;
 
@@ -895,10 +1511,19 @@
       if (origStep) {
         const valInput = card.querySelector('.step-val-input');
         const updatedVal = valInput ? valInput.value : origStep.value;
-        newSteps.push({
+        const updatedStep = {
           ...origStep,
           value: updatedVal
-        });
+        };
+        if (origStep.type === 'select' || origStep.type === 'custom_select') {
+          updatedStep.optionText = updatedVal;
+          updatedStep.optionValue = updatedVal;
+          if (origStep.label && origStep.label.includes(':')) {
+            const prefix = origStep.label.split(':')[0];
+            updatedStep.label = `${prefix}: "${updatedVal}"`;
+          }
+        }
+        newSteps.push(updatedStep);
       }
     });
 
@@ -1194,8 +1819,8 @@
   // THEME MANAGEMENT (DARK / LIGHT)
   // -------------------------------------------------------------
   function setupTheme() {
-    const currentTheme = settings.theme || 'dark';
-    applyTheme(currentTheme);
+    settings.theme = 'light';
+    applyTheme('light');
 
     if (themeBtnLight) {
       themeBtnLight.addEventListener('click', () => setTheme('light'));
@@ -1273,10 +1898,44 @@
     return div.innerHTML;
   }
 
+  // -------------------------------------------------------------
+  // LIQUID GLASS INTERACTIVE TOUCH & SPECULAR TRACKING
+  // (haider-nawaz/liquid-glass-skill)
+  // -------------------------------------------------------------
+  function setupLiquidInteractions() {
+    // Touch & pointer illumination radiating across glass surfaces
+    window.addEventListener('pointermove', (e) => {
+      const x = (e.clientX / window.innerWidth) * 100;
+      const y = (e.clientY / window.innerHeight) * 100;
+      document.documentElement.style.setProperty('--mouse-x', `${x.toFixed(1)}%`);
+      document.documentElement.style.setProperty('--mouse-y', `${y.toFixed(1)}%`);
+    }, { passive: true });
+
+    // Tactile spring feedback on glass interactive elements
+    document.addEventListener('pointerdown', (e) => {
+      const btn = e.target.closest('.nav-item, .btn-create-liquid, .btn-var-chip, .btn-cat-pill, .btn-glass-primary, .btn-glass-ghost, .btn-tool, .snippet-item-card, .btn-glass-sort');
+      if (!btn) return;
+      btn.style.transition = 'transform 0.08s ease';
+      btn.style.transform = 'scale(0.94)';
+      const onPointerUp = () => {
+        btn.style.transform = '';
+        setTimeout(() => { btn.style.transition = ''; }, 150);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+      };
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+    });
+  }
+
   // Khởi chạy an toàn (hỗ trợ cả DOMContentLoaded lẫn khi script tải sau)
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      setupLiquidInteractions();
+    });
   } else {
     init();
+    setupLiquidInteractions();
   }
 })();

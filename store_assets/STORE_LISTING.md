@@ -6,67 +6,103 @@ Tài liệu này cung cấp sẵn toàn bộ nội dung văn bản, mô tả, t�
 
 ## 1. Thông Tin Cơ Bản (Store Metadata)
 
-- **Tên tiện ích (Extension Name):** `Auto Text Expander - Shortcut & Markdown Text Replacer`
+- **Tên tiện ích (Extension Name):** `Auto Text Expander & Form Macro Automation`
 - **Tên viết tắt (Short Name):** `Auto Text Expander`
-- **Mô tả ngắn (Short Description - Dưới 132 ký tự):**
-  `Tự động mở rộng từ khóa phím tắt thành văn bản, hỗ trợ Markdown, Rich Text, bật/tắt theo URL và kiểm tra trước khi lưu.`
-- **Danh mục (Category):** `Productivity` (Năng suất) hoặc `Workflow & Planning`
+- **Mô tả ngắn tiếng Việt (Dưới 132 ký tự):**
+  `Tự động mở rộng từ khóa phím tắt, hỗ trợ Markdown và ghi - chạy kịch bản tự động điền form, chọn dropdown chuẩn xác 100%.`
+- **Mô tả ngắn tiếng Anh (Under 132 characters):**
+  `Auto text expander with Markdown support and smart form macro recorder/replayer with 100% precision dropdown automation.`
+- **Danh mục (Category):** `Productivity` (Năng suất) hoặc `Workflow & Planning` (Quy trình & Lập kế hoạch)
 
 ---
 
-## 2. Mô Tả Chi Tiết (Detailed Description)
+## 2. Mô Tả Chi Tiết (Detailed Description - Dưới 16.000 ký tự)
 
-*(Sao chép toàn bộ đoạn dưới đây dán vào mục "Detailed Description" trên Chrome Web Store)*
+*(Sao chép toàn bộ đoạn dưới đây dán vào ô "Detailed Description" trên Chrome Web Store Developer Console)*
 
 ```text
-⚡ Tiết kiệm hàng giờ gõ văn bản lặp đi lặp lại với Auto Text Expander!
+⚡ TIẾT KIỆM HÀNG GIỜ GÕ PHÍM VÀ NHẬP LIỆU LẶP LẠI VỚI AUTO TEXT EXPANDER & FORM AUTOMATION!
 
-Auto Text Expander là tiện ích mở rộng thông minh giúp bạn tự động thay thế các từ khóa viết tắt ngắn thành đoạn văn bản dài, email mẫu, chữ ký công việc hoặc tin nhắn chăm sóc khách hàng chỉ trong chớp mắt.
+Bạn có đang mệt mỏi vì phải gõ đi gõ lại cùng một câu trả lời email, cùng một đoạn tin nhắn chăm sóc khách hàng, hay phải điền đi điền lại hàng chục trường thông tin trên biểu mẫu web mỗi ngày? 
 
-Điểm đặc biệt: Hỗ trợ hoàn hảo cú pháp Markdown và chuyển đổi sang Rich Text đẹp mắt trên các trình soạn thảo phong phú như Gmail, Notion, Google Docs, Slack, Facebook,...
+Auto Text Expander là giải pháp toàn diện thế hệ mới kết hợp giữa:
+1. Trình mở rộng phím tắt văn bản thông minh (Text Expansion & Rich Markdown).
+2. Công cụ ghi và tự động hóa thao tác biểu mẫu chuẩn Production (Form Macro Automation).
 
----------------------------------------------------
-🌟 CÁC TÍNH NĂNG NỔI BẬT:
----------------------------------------------------
-
-1. TẠO VÀ QUẢN LÝ PHÍM TẮT DỄ DÀNG (CRUD):
-- Thêm, sửa, xóa và lưu phím tắt với giao diện Dashboard trực quan, hiện đại.
-- Tìm kiếm nhanh chóng theo từ khóa, nhãn hoặc nội dung.
-- Không giới hạn số lượng phím tắt.
-
-2. HỖ TRỢ ĐỊNH DẠNG VĂN BẢN MARKDOWN & RICH TEXT:
-- Soạn thảo nội dung phím tắt bằng cú pháp Markdown tiện lợi: In đậm (**text**), In nghiêng (*text*), Tiêu đề (##), Gạch đầu dòng, Bảng biểu, Chèn link,...
-- Thanh công cụ định dạng nhanh tích hợp sẵn.
-- Xem trước trực tiếp (Live Markdown Preview) theo thời gian thực.
-- Tự động chuyển đổi thành Rich Text (HTML an toàn) khi gõ trên Gmail, Notion, Slack.
-
-3. Ô THỬ NGHIỆM TƯƠNG TÁC (TEST PLAYGROUND):
-- Cho phép bạn gõ thử ngay phím tắt vừa nhập để kiểm tra xem nó có mở rộng chính xác không TRƯỚC KHI BẤM LƯU.
-- Phòng thử nghiệm riêng biệt (Test Lab) với cả ô nhập tiêu chuẩn và trình soạn thảo phong phú.
-
-4. BẬT VÀ TẮT LINH HOẠT THEO TỪNG URL:
-- Hỗ trợ 2 chế độ: Blacklist (Chặn các trang nhạy cảm như ngân hàng) hoặc Whitelist (Chỉ chạy trên các trang được chọn).
-- Nút gạt bật/tắt 1-click ngay trên thanh công cụ duyệt web (Popup) cho từng website cụ thể.
-
-5. SAO LƯU & KHÔI PHỤC DỮ LIỆU (IMPORT / EXPORT):
-- Xuất dữ liệu ra file JSON để sao lưu trọn vẹn cài đặt.
-- Xuất dữ liệu ra file CSV tương thích với Microsoft Excel / Google Sheets để dễ dàng chỉnh sửa hàng loạt.
-- Nhập dữ liệu với 2 tùy chọn: Hợp nhất (Merge) hoặc Ghi đè (Overwrite).
-
-6. BẢO MẬT & RIÊNG TƯ TUYỆT ĐỐI:
-- Tuân thủ chuẩn Manifest V3 mới nhất.
-- 100% dữ liệu được lưu cục bộ trên máy tính của bạn (Local Storage).
-- Hoạt động offline, KHÔNG thu thập dữ liệu, KHÔNG máy chủ từ xa, KHÔNG quảng cáo.
+Chỉ cần gõ một từ khóa viết tắt ngắn (ví dụ: :email, :sig, :cbreply), tiện ích sẽ lập tức thay thế thành văn bản hoàn chỉnh hoặc tự động điền form, chọn dropdown và bấm gửi thay cho bạn!
 
 ---------------------------------------------------
-💡 VÍ DỤ ỨNG DỤNG NHANH:
+🚀 CÁC TÍNH NĂNG ĐỘT PHÁ NỔI BẬT:
 ---------------------------------------------------
-- Gõ `:email` ➔ Tự động bung ra `contact@example.com`
-- Gõ `:sig` ➔ Tự động bung ra chữ ký Markdown có định dạng in đậm, email, số điện thoại
-- Gõ `:meeting` ➔ Tự động bung ra link Google Meet và lịch họp dự án
-- Gõ `:addr` ➔ Tự động bung ra địa chỉ công ty chi tiết
 
-Cài đặt ngay Auto Text Expander để nhân đôi tốc độ soạn thảo văn bản của bạn!
+1. TỰ ĐỘNG HÓA BIỂU MẪU CHUẨN PRODUCTION (FORM MACRO RECORD & REPLAY):
+- Ghi thao tác 1-Click: Bấm "Ghi Thao Tác" và tương tác trên trang web như bình thường (nhập tiêu đề, điền nội dung, lựa chọn dropdown, bấm nút gửi).
+- Thuật toán Dropdown chuẩn xác tối đa 100%:
+  + Hỗ trợ hoàn hảo cả thẻ <select> chuẩn HTML5 lẫn các thư viện Custom Dropdown / ARIA Combobox hiện đại: Ant Design, Material-UI, React-Select, Radix UI / Shadcn, Tailwind Headless UI, Bootstrap, Select2, Choices.js,...
+  + Cơ chế Tự Mở Trigger Thông Minh (Autonomous Triggering): Tự động tìm kiếm và mở menu dropdown nếu menu đang đóng.
+  + Thuật toán so khớp Option 6 cấp: Khớp chính xác, chuẩn hóa Unicode NFC, tự động loại bỏ tiền tố số thứ tự (1., 2.), tự động so khớp tiếng Việt không dấu, khớp chuỗi con và từ khóa.
+  + Tương thích sâu với các Framework lớn: React 16-19 (Bypass ValueTracker), Vue 2/3, Angular Reactive Forms.
+- Chế độ kiểm soát tốc độ & an toàn: Tùy chọn 3 chế độ thực thi:
+  + An Toàn & Chuẩn Xác (Safe Mode - 200ms): Khuyên dùng cho Production, tự động đợi tải dữ liệu API.
+  + Cân Bằng (Balanced - 100ms): Nhanh gọn cho các form nội bộ.
+  + Siêu Tốc (Turbo - 40ms): Xử lý tức thì trong nháy mắt.
+- Cơ chế Dừng An Toàn & Phím Thoát Khẩn Cấp (ESC): Luôn hiển thị thanh tiến trình trực quan (Visual Highlight) và cho phép nhấn ESC để dừng ngay lập tức, ngăn ngừa tối đa việc điền nhầm dữ liệu.
+
+2. MỞ RỘNG TỪ KHÓA THÔNG MINH (TEXT EXPANSION):
+- Tạo không giới hạn số lượng phím tắt viết tắt.
+- Chèn nhanh email mẫu, câu trả lời hỗ trợ khách hàng, đoạn code lập trình, thông tin thanh toán, địa chỉ công ty,...
+- Kích hoạt tức thì ngay khi vừa gõ xong từ khóa hoặc kích hoạt sau dấu cách / phím Enter.
+- Giao diện Popup & Dashboard quản lý tìm kiếm phím tắt cực nhanh.
+
+3. HỖ TRỢ ĐỊNH DẠNG MARKDOWN & RICH TEXT CAO CẤP:
+- Soạn thảo phím tắt với cú pháp Markdown tiện lợi: In đậm (**text**), In nghiêng (*text*), Tiêu đề (##), Gạch đầu dòng, Bảng biểu (Table), Mã code, Chèn liên kết,...
+- Thanh công cụ định dạng trực quan (Toolbar) tích hợp sẵn.
+- Xem trước trực tiếp theo thời gian thực (Live Markdown Preview).
+- Tự động chuyển đổi thành Rich Text (HTML định dạng chuẩn) khi gõ trên các trình soạn thảo phong phú như Gmail, Google Docs, Notion, Slack, Zendesk, Jira,...
+
+4. PHÒNG THỬ NGHIỆM TƯƠNG TÁC TRỰC QUAN (TEST LAB):
+- Cho phép bạn kiểm tra ngay phím tắt hoặc kịch bản biểu mẫu vừa tạo TRƯỚC KHI LƯU.
+- Tích hợp sẵn: Ô nhập 1 dòng, khung văn bản nhiều dòng, trình soạn thảo phong phú WYSIWYG và các loại Dropdown mẫu (Native Select & Custom Combobox).
+
+5. KIỂM SOÁT BẬT/TẮT LINH HOẠT THEO TỪNG TRANG WEB (URL RULES):
+- Chế độ Blacklist: Hoạt động trên mọi trang web, ngoại trừ danh sách các trang bạn muốn bảo vệ (như cổng ngân hàng, ví điện tử).
+- Chế độ Whitelist: Chỉ hoạt động duy nhất trên các trang web và tên miền được bạn chỉ định (ví dụ: crm.company.com, mail.google.com).
+- Công tắc bật/tắt nhanh 1-Click ngay trên Popup tiện ích.
+
+6. SAO LƯU & ĐỒNG BỘ DỮ LIỆU DỄ DÀNG (IMPORT / EXPORT):
+- Xuất dữ liệu ra file JSON để sao lưu hoặc chuyển đổi sang máy tính khác.
+- Xuất dữ liệu ra file CSV tương thích hoàn hảo với Microsoft Excel và Google Sheets để chỉnh sửa hàng loạt nhanh chóng.
+- Nhập dữ liệu linh hoạt: Hỗ trợ chế độ Hợp nhất (Merge) hoặc Ghi đè (Overwrite).
+
+7. AN TOÀN, BẢO MẬT & TÔN TRỌNG QUYỀN RIÊNG TƯ TUYỆT ĐỐI:
+- Tuân thủ nghiêm ngặt tiêu chuẩn bảo mật Google Chrome Manifest V3.
+- 100% dữ liệu được lưu trữ cục bộ (Local Storage) trên máy tính của bạn.
+- Hoạt động hoàn toàn Offline: KHÔNG gửi dữ liệu ra máy chủ bên ngoài, KHÔNG theo dõi hành vi người dùng, KHÔNG chứa quảng cáo.
+
+---------------------------------------------------
+💡 VÍ DỤ ỨNG DỤNG THỰC TẾ:
+---------------------------------------------------
+
+- Chăm sóc khách hàng & Bán hàng:
+  + Gõ `:cbreply` ➔ Tự động mở ticket CRM, điền lời chào, đổi trạng thái sang "Đang xử lý", gán phòng ban "Hỗ trợ kỹ thuật" và bấm cập nhật.
+  + Gõ `:thanks` ➔ Tự động bung ra: "Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ của chúng tôi!"
+- Nhân sự & Tuyển dụng:
+  + Gõ `:interview` ➔ Bung ra thư mời phỏng vấn có đầy đủ ngày giờ, link Google Meet và tài liệu đính kèm.
+- Kỹ sư phần mềm & IT:
+  + Gõ `:standup` ➔ Tự động bung ra mẫu báo cáo tiến độ Daily Meeting định dạng Markdown.
+- Cá nhân & Văn phòng:
+  + Gõ `:email` ➔ contact@mycompany.vn
+  + Gõ `:bank` ➔ Thông tin tài khoản ngân hàng chi tiết kèm cú pháp chuyển khoản.
+
+---------------------------------------------------
+🛠️ HƯỚNG DẪN BẮT ĐẦU NHANH TRONG 3 BƯỚC:
+---------------------------------------------------
+
+1. Cài đặt tiện ích và bấm vào biểu tượng Auto Text Expander trên thanh công cụ trình duyệt.
+2. Quản lý phím tắt: Bấm "Mở Trang Quản Lý" để thêm các từ khóa viết tắt bạn hay dùng.
+3. Tự động hóa biểu mẫu: Mở trang web cần điền form ➔ Bấm icon tiện ích ➔ Chọn "Ghi Thao Tác" ➔ Thao tác trên form và bấm "Dừng & Lưu". Từ nay về sau, kịch bản sẽ tự động chạy mỗi khi bạn gõ từ khóa!
+
+Cài đặt ngay Auto Text Expander & Form Automation để giải phóng đôi tay và tối ưu hóa năng suất làm việc của bạn ngay hôm nay!
 ```
 
 ---

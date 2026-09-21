@@ -1,603 +1,797 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Text Expander - Bảng Quản Lý Phím Tắt</title>
-  <link rel="stylesheet" href="options.css">
+  <title>Auto Text Expander Pro - Liquid Glass Studio</title>
+  <!-- Tailwind CSS & Liquid Glass Stylesheet -->
+  <link rel="stylesheet" href="tailwind.css?v=7.1">
+  <link rel="stylesheet" href="options.css?v=7.4">
 </head>
 
 <body>
-  <div class="app-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="brand">
-        <img src="../icons/icon48.png" alt="Logo" class="brand-logo">
-        <div class="brand-info">
-          <h1>Auto Text Expander</h1>
-          <span class="badge-version">v1.0.0 • Pro</span>
-        </div>
-      </div>
+  <!-- LIQUID GLASS ENVIRONMENT -->
+  <div class="liquid-glass-app">
+    <!-- Fluid Aurora Ambient Orbs Behind Frosted Glass (Continuous Liquid Motion) -->
+    <div class="fluid-canvas" aria-hidden="true">
+      <div class="fluid-orb orb-indigo"></div>
+      <div class="fluid-orb orb-cyan"></div>
+      <div class="fluid-orb orb-rose"></div>
+      <div class="fluid-orb orb-amber"></div>
+      <div class="fluid-orb orb-emerald"></div>
+    </div>
 
-      <nav class="nav-menu">
-        <button class="nav-item active" data-tab="snippets">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          <span class="nav-label">Danh Sách Phím Tắt</span>
-          <span class="badge-count" id="badge-total-snippets">0</span>
-        </button>
+    <!-- MAIN TWO-PIECE APP SHELL: WORKSPACE (LEFT) + NAVIGATION DOCK (RIGHT) -->
+    <div class="liquid-shell">
 
-        <button class="nav-item" data-tab="test-box">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-          </svg>
-          <span class="nav-label">Phòng Thử Nghiệm</span>
-        </button>
+      <!-- ========================================================
+           MAIN WORKSPACE CANVAS (LEFT AREA)
+           ======================================================== -->
+      <main class="liquid-workspace">
 
-        <button class="nav-item" data-tab="macros">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polygon points="5 3 19 12 5 21 5 3"></polygon>
-          </svg>
-          <span class="nav-label">Kịch Bản Macro</span>
-          <span class="nav-badge" id="badge-total-macros">0</span>
-        </button>
+        <!-- ========================================================
+             TAB 1: PHÍM TẮT (2-COLUMN LIQUID GLASS STUDIO)
+             ======================================================== -->
+        <section id="tab-snippets" class="tab-pane active">
+          <div class="snippets-glass-grid">
 
-        <button class="nav-item" data-tab="url-rules">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="2" y1="12" x2="22" y2="12"></line>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-          </svg>
-          <span class="nav-label">Bộ Lọc Website (URL)</span>
-        </button>
+            <!-- SUB-COLUMN 1: SNIPPETS NAVIGATOR GLASS PANEL -->
+            <aside class="glass-panel snippet-navigator">
+              <!-- Search Box -->
+              <div class="glass-search-box">
+                <svg class="search-glass-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="search-input" placeholder="Tìm kiếm phím tắt, mô tả hoặc #tag..." autocomplete="off">
+              </div>
 
-        <button class="nav-item" data-tab="backup">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          <span class="nav-label">Sao Lưu & Khôi Phục</span>
-        </button>
+              <!-- Horizontal Category Chips (Uses .btn-cat-pill!) -->
+              <div class="glass-category-bar" id="category-filter-bar">
+                <button type="button" class="btn-cat-pill active" data-cat="all">
+                  <svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                  </svg>
+                  <span>Tất cả</span>
+                </button>
+                <button type="button" class="btn-cat-pill" data-cat="work">
+                  <svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                  </svg>
+                  <span>Công việc</span>
+                </button>
+                <button type="button" class="btn-cat-pill" data-cat="support">
+                  <svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>CSKH</span>
+                </button>
+                <button type="button" class="btn-cat-pill" data-cat="personal">
+                  <svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  <span>Cá nhân</span>
+                </button>
+                <button type="button" class="btn-cat-pill" data-cat="dev">
+                  <svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                  </svg>
+                  <span>Dev</span>
+                </button>
+                <button type="button" class="btn-cat-pill" data-cat="general">
+                  <svg class="cat-pill-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Chung</span>
+                </button>
+                <button type="button" class="btn-add-cat-pill" id="btn-open-category-modal"
+                  title="Tạo thêm danh mục mới">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Danh mục</span>
+                </button>
+              </div>
 
-        <button class="nav-item" data-tab="settings">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-            </path>
-          </svg>
-          <span class="nav-label">Cài Đặt Hệ Thống</span>
-        </button>
-      </nav>
+              <!-- List Meta Row -->
+              <div class="glass-list-meta">
+                <span class="meta-counter-badge" id="list-counter">5 phím tắt đã lưu</span>
+                <button type="button" class="btn-glass-sort" id="btn-sort-list" title="Đổi thứ tự sắp xếp">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="11" y1="5" x2="11" y2="19"></line>
+                    <polyline points="7 9 11 5 15 9"></polyline>
+                    <line x1="17" y1="19" x2="17" y2="5"></line>
+                    <polyline points="13 15 17 19 21 15"></polyline>
+                  </svg>
+                  <span>A–Z</span>
+                </button>
+              </div>
 
-      <div class="sidebar-footer">
-        <div class="theme-switch-container">
-          <span class="theme-switch-label">Giao diện:</span>
-          <div class="theme-toggle-group">
-            <button type="button" class="btn-theme-toggle" id="theme-btn-light" title="Giao diện Sáng">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"></circle>
-                <line x1="12" y1="1" x2="12" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="23"></line>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                <line x1="1" y1="12" x2="3" y2="12"></line>
-                <line x1="21" y1="12" x2="23" y2="12"></line>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-              </svg>
-              <span>Sáng</span>
-            </button>
-            <button type="button" class="btn-theme-toggle active" id="theme-btn-dark" title="Giao diện Tối">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-              </svg>
-              <span>Tối</span>
-            </button>
-          </div>
-        </div>
+              <!-- Scrollable Snippets Cards Container -->
+              <div class="glass-cards-scroll" id="snippet-cards-list">
+                <!-- Dynamically populated via options.js -->
+              </div>
+            </aside>
 
-        <div class="status-indicator">
-          <span class="status-dot"></span>
-          <span class="status-text">Đang hoạt động</span>
-        </div>
-      </div>
-    </aside>
+            <!-- SUB-COLUMN 2: EDITOR STUDIO GLASS PANEL -->
+            <section class="glass-panel snippet-editor-canvas">
+              <!-- Editor Header Bar -->
+              <div class="editor-glass-header">
+                <div class="trail-badge">
+                  <span class="pulse-glass-dot"></span>
+                  <h3 id="editor-title">Tạo Phím Tắt Mới</h3>
+                </div>
 
-    <!-- Main Content Area -->
-    <main class="main-content">
-
-      <!-- TAB 1: SNIPPETS MANAGER -->
-      <section id="tab-snippets" class="tab-pane active">
-        <header class="section-header">
-          <div>
-            <h2>Quản Lý Từ Khóa Phím Tắt</h2>
-            <p class="subtitle">Thêm, chỉnh sửa nội dung văn bản hỗ trợ Markdown và đồng bộ tức thì trên mọi trang web.
-            </p>
-          </div>
-          <div class="header-actions">
-            <div class="search-box">
-              <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
-              <input type="text" id="search-input" placeholder="Tìm phím tắt, nhãn, nội dung...">
-            </div>
-            <button class="btn btn-primary" id="btn-create-new">
-              <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Tạo Phím Tắt Mới
-            </button>
-          </div>
-        </header>
-
-        <div class="snippets-grid-container">
-          <!-- Left: Snippets List -->
-          <div class="snippet-list-column">
-            <div class="list-header">
-              <span id="list-counter">Tất cả phím tắt</span>
-              <button class="btn-text" id="btn-sort-list">Sắp xếp: A-Z</button>
-            </div>
-            <div class="snippet-cards-list" id="snippet-cards-list">
-              <!-- Render via JS -->
-            </div>
-          </div>
-
-          <!-- Right: Snippet Editor Form -->
-          <div class="snippet-editor-column">
-            <div class="card editor-card">
-              <div class="card-header">
-                <h3 id="editor-title">Tạo Phím Tắt Mới</h3>
-                <div class="editor-actions">
-                  <button class="btn btn-ghost" id="btn-cancel-edit" style="display:none;">Hủy Bỏ</button>
-                  <button class="btn btn-danger-soft" id="btn-delete-snippet" style="display:none;">
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="header-action-btns">
+                  <button type="button" class="btn-glass-ghost" id="btn-cancel-edit" style="display:none;">Hủy</button>
+                  <button type="button" class="btn-glass-danger" id="btn-delete-snippet" style="display:none;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <polyline points="3 6 5 6 21 6"></polyline>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                     </svg>
-                    Xóa
+                    <span>Xóa</span>
                   </button>
-                  <button class="btn btn-primary" id="btn-save-snippet">
-                    <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <button type="button" class="btn-glass-primary" id="btn-save-snippet">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                       <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                       <polyline points="17 21 17 13 7 13 7 21"></polyline>
                       <polyline points="7 3 7 8 15 8"></polyline>
                     </svg>
-                    Lưu Phím Tắt
+                    <span>Lưu Phím Tắt</span>
                   </button>
                 </div>
               </div>
 
-              <div class="card-body form-body">
-                <input type="hidden" id="edit-snippet-id">
+              <input type="hidden" id="edit-snippet-id">
 
-                <div class="form-row two-cols">
-                  <div class="form-group">
-                    <label for="input-shortcut">
-                      Từ Khóa Kích Hoạt (Trigger Shortcut) <span class="required">*</span>
-                    </label>
-                    <div class="input-with-prefix">
-                      <input type="text" id="input-shortcut" placeholder="Ví dụ: :email hoặc /sig" autocomplete="off">
-                    </div>
-                    <span class="help-text">Nên dùng tiền tố như <code>:</code> hoặc <code>/</code> để tránh nhầm khi gõ
-                      văn bản thường.</span>
-                  </div>
+              <!-- Document Title Field (Large & Seamless) -->
+              <div class="glass-title-field">
+                <input type="text" id="input-label"
+                  placeholder="Đặt tên gợi nhớ phím tắt (Ví dụ: Địa chỉ văn phòng, Mẫu CSKH)..." autocomplete="off">
+              </div>
 
-                  <div class="form-group">
-                    <label for="input-label">Tên Gợi Nhớ (Mô tả)</label>
-                    <input type="text" id="input-label" placeholder="Ví dụ: Email công ty cá nhân">
-                    <span class="help-text">Tiêu đề phân loại phím tắt giúp tìm kiếm nhanh trong danh sách.</span>
+              <!-- Metadata Inspector Properties Strip -->
+              <div class="glass-props-strip">
+                <div class="prop-group">
+                  <span class="prop-title">Phím tắt:</span>
+                  <div class="prop-input-pill">
+                    <span class="prop-symbol">:</span>
+                    <input type="text" id="input-shortcut" placeholder="email hoặc sig" autocomplete="off">
                   </div>
                 </div>
 
-                <div class="form-group">
-                  <div class="content-header-bar">
-                    <label for="input-content" class="label-nowrap">
-                      Nội Dung Văn Bản (Hỗ trợ Markdown) <span class="required">*</span>
-                    </label>
-                    <!-- Markdown Quick Toolbar -->
-                    <div class="md-toolbar">
-                      <button type="button" class="btn-tool" data-md="bold" title="In đậm (**text**)"><b>B</b></button>
-                      <button type="button" class="btn-tool" data-md="italic"
-                        title="In nghiêng (*text*)"><i>I</i></button>
-                      <button type="button" class="btn-tool" data-md="heading" title="Tiêu đề (## Tiêu đề)">H</button>
-                      <button type="button" class="btn-tool" data-md="link" title="Chèn Link ([Tên](url))">🔗
-                        Link</button>
-                      <button type="button" class="btn-tool" data-md="code" title="Mã Code (`code`)">💻 Code</button>
-                      <button type="button" class="btn-tool" data-md="bullet" title="Danh sách">• List</button>
-                      <button type="button" class="btn-tool" data-md="table" title="Bảng">▦ Bảng</button>
-                    </div>
-                  </div>
+                <div class="prop-group">
+                  <span class="prop-title">Danh mục:</span>
+                  <select id="select-category" class="prop-glass-select">
+                    <option value="general">Chung (General)</option>
+                    <option value="work">Công Việc (Work)</option>
+                    <option value="support">CSKH (Support)</option>
+                    <option value="personal">Cá Nhân (Personal)</option>
+                    <option value="dev">Lập Trình (Dev)</option>
+                  </select>
+                </div>
 
-                  <div class="editor-tabs">
-                    <button type="button" class="tab-btn active" id="tab-write">Soạn Thảo (Markdown)</button>
-                    <button type="button" class="tab-btn" id="tab-preview">Xem Trước (Live Preview)</button>
+                <div class="prop-group prop-fill">
+                  <div class="prop-tag-label-wrap">
+                    <svg class="prop-tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                    <span class="prop-title">Thẻ tag:</span>
                   </div>
-
-                  <div class="tab-content-area">
-                    <textarea id="input-content" rows="9" placeholder="Nhập nội dung phím tắt tại đây..."></textarea>
-                    <div id="preview-container" class="preview-box" style="display: none;"></div>
+                  <div class="prop-tags-box" id="prop-tags-box">
+                    <div id="editor-tag-badges" class="editor-tag-badges"></div>
+                    <input type="text" id="input-tags" class="prop-tag-input-inline"
+                      placeholder="Thêm thẻ (Enter hoặc phẩy)..." autocomplete="off">
                   </div>
                 </div>
 
-                <div class="form-row switch-row">
-                  <label class="toggle-switch">
+                <div class="prop-group">
+                  <label class="liquid-switch-label">
                     <input type="checkbox" id="check-rich-text" checked>
-                    <span class="slider"></span>
+                    <span class="liquid-switch-track"></span>
+                    <span class="liquid-switch-text">Rich Text (HTML)</span>
                   </label>
-                  <div class="switch-label">
-                    <strong>Tự động chuyển Markdown sang Rich Text (HTML) khi gõ</strong>
-                    <p class="help-text">Khi gõ trong Gmail, Notion, Google Docs hoặc trình soạn thảo phong phú, văn bản
-                      sẽ tự động chuyển thành in đậm, bảng, link đẹp mắt.</p>
+                </div>
+              </div>
+
+              <!-- Workspace Container (Toolbar, Tokens & Textarea) -->
+              <div class="glass-editor-workspace">
+                <!-- Toolbar Strip -->
+                <div class="glass-toolbar-strip">
+                  <div class="mode-switch-capsule">
+                    <button type="button" class="btn-mode-tab active" id="tab-write">Soạn Thảo</button>
+                    <button type="button" class="btn-mode-tab" id="tab-preview">Xem Trước</button>
+                  </div>
+
+                  <div class="toolbar-sep-line"></div>
+
+                  <!-- Markdown Actions (Uses .btn-tool!) -->
+                  <div class="toolbar-format-group">
+                    <button type="button" class="btn-tool" data-md="bold" title="In đậm (**text**)">B</button>
+                    <button type="button" class="btn-tool italic-mark" data-md="italic"
+                      title="In nghiêng (*text*)">I</button>
+                    <button type="button" class="btn-tool" data-md="heading" title="Tiêu đề (## Tiêu đề)">H</button>
+                    <button type="button" class="btn-tool" data-md="link" title="Chèn liên kết">🔗</button>
+                    <button type="button" class="btn-tool mono-mark" data-md="code"
+                      title="Khối mã (`code`)">&lt;/&gt;</button>
+                    <button type="button" class="btn-tool" data-md="bullet" title="Danh sách bullet">• Bullet</button>
+                    <button type="button" class="btn-tool" data-md="table" title="Chèn bảng">▦ Bảng</button>
+                  </div>
+
+                  <div class="toolbar-grow-space"></div>
+
+                  <!-- Dynamic Variables Tokens Ribbon (Uses .btn-var-chip!) -->
+                  <div class="glass-var-tokens">
+                    <span class="tokens-label">+ Biến:</span>
+                    <button type="button" class="btn-var-chip" data-var="{{date}}"
+                      title="Chèn ngày hiện tại (DD/MM/YYYY)">{{date}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{time}}"
+                      title="Chèn giờ hiện tại (HH:mm)">{{time}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{cursor}}"
+                      title="Vị trí con trỏ chuột dừng">{{cursor}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{clipboard}}"
+                      title="Dán nội dung từ Clipboard">{{clipboard}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{name}}"
+                      title="Biến tham số điền tương tác">{{name}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{choice:...}}"
+                      title="Danh sách lựa chọn">{{choice:...}}</button>
                   </div>
                 </div>
 
-                <!-- Live Quick Test Box inside Editor -->
-                <div class="editor-quick-test">
-                  <div class="quick-test-header">
-                    <div class="quick-test-title">
-                      <span class="lightning-icon">⚡</span>
-                      <strong>Gõ thử nghiệm trước khi lưu:</strong>
+                <!-- Textarea Editor & Preview -->
+                <div class="glass-editor-body">
+                  <textarea id="input-content" rows="12"
+                    placeholder="Nhập nội dung văn bản mở rộng tại đây... Hỗ trợ cú pháp Markdown và các biến {{date}}, {{time}}, {{cursor}}..."></textarea>
+                  <div id="preview-container" class="glass-preview-pane" style="display:none;"></div>
+                </div>
+
+                <!-- Hidden fallback for testing / backward compatibility -->
+                <div style="display:none;">
+                  <input type="text" id="inline-test-input">
+                  <span id="inline-test-status"></span>
+                  <button type="button" id="btn-clear-inline-test"></button>
+                </div>
+              </div>
+            </section>
+
+          </div>
+        </section>
+
+        <!-- ========================================================
+             TAB 2: THỬ NGHIỆM (PLAYGROUND)
+             ======================================================== -->
+        <section id="tab-test-box" class="tab-pane">
+          <div class="glass-scroll-container">
+            <header class="glass-view-header">
+              <div>
+                <h2>Phòng Thử Nghiệm Phím Tắt</h2>
+                <p>Kiểm tra khả năng mở rộng trên trường văn bản thuần, trình soạn thảo Rich Text và Dropdown tự động
+                  hóa.</p>
+              </div>
+              <button type="button" class="btn-glass-ghost" id="btn-clear-test-lab">Xóa Trắng Mọi Ô Thử Nghiệm</button>
+            </header>
+
+            <div class="glass-cards-layout">
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>1. Ô Nhập Tiêu Chuẩn (Input & Textarea)</h3>
+                  <span class="glass-pill-tag">Plain Text</span>
+                </div>
+                <div class="card-content">
+                  <p class="glass-hint">Kiểm tra trên các trường văn bản input/textarea thông thường (tự động làm sạch
+                    cú pháp Markdown thành văn bản thuần).</p>
+                  <div class="form-stack">
+                    <label>Ô gõ 1 dòng (Single-line Input):</label>
+                    <input type="text" id="test-single-input" class="glass-input-field"
+                      placeholder="Gõ :email, :cskh hoặc :meeting vào đây...">
+                  </div>
+                  <div class="form-stack">
+                    <label>Khung gõ nhiều dòng (Multi-line Textarea):</label>
+                    <textarea id="test-multi-textarea" class="glass-input-field" rows="4"
+                      placeholder="Gõ thử các phím tắt nhiều dòng như :sig, :meeting..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>2. Trình Soạn Thảo Phong Phú (WYSIWYG)</h3>
+                  <span class="glass-pill-tag accent">Rich Text HTML</span>
+                </div>
+                <div class="card-content">
+                  <p class="glass-hint">Mô phỏng khung soạn thảo của Gmail, Notion, Slack, Docs. Markdown tự bung thành
+                    chữ in đậm, bảng, liên kết.</p>
+                  <div class="form-stack">
+                    <label>Khung Soạn Thảo Phong Phú (Rich Editor):</label>
+                    <div id="test-rich-editor" class="glass-editable-field" contenteditable="true"
+                      data-placeholder="Gõ :sig, :meeting hoặc :cskh vào đây để thấy Markdown tự bung thành định dạng phong phú...">
                     </div>
-                    <button type="button" class="btn-text-sm" id="btn-clear-inline-test">Xóa ô test</button>
                   </div>
-                  <input type="text" id="inline-test-input" class="inline-test-field"
-                    placeholder="Gõ thử từ khóa bạn vừa nhập ở trên vào ô này để kiểm tra...">
-                  <div id="inline-test-status" class="inline-test-status">Chưa gõ thử</div>
                 </div>
-
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <!-- TAB 2: TEST LAB (DEDICATED TESTING PLAYGROUND) -->
-      <section id="tab-test-box" class="tab-pane">
-        <header class="section-header">
-          <div>
-            <h2>Phòng Thử Nghiệm Phím Tắt</h2>
-            <p class="subtitle">Kiểm tra khả năng mở rộng của phím tắt trên cả ô nhập liệu tiêu chuẩn lẫn trình soạn
-              thảo phong phú (WYSIWYG Rich Text).</p>
-          </div>
-          <button class="btn btn-secondary" id="btn-clear-test-lab">Xóa Trắng Ô Thử Nghiệm</button>
-        </header>
+              <div class="glass-card col-span-2">
+                <div class="card-head">
+                  <h3>3. Thử Nghiệm Tự Động Hóa Biểu Mẫu & Dropdown</h3>
+                  <span class="glass-pill-tag success">Production Ready</span>
+                </div>
+                <div class="card-content">
+                  <p class="glass-hint">Hỗ trợ cả thẻ select truyền thống lẫn Custom ARIA Dropdown hiện đại (Ant Design,
+                    MUI, Tailwind).</p>
+                  <div class="grid-2col">
+                    <div class="form-stack">
+                      <label>Dropdown HTML chuẩn (&lt;select&gt;):</label>
+                      <select id="test-native-select" class="glass-input-field">
+                        <option value="">-- Chọn trạng thái xử lý --</option>
+                        <option value="pending">Chờ xác nhận</option>
+                        <option value="processing">Đang đóng gói</option>
+                        <option value="shipping">Đang giao hàng</option>
+                        <option value="completed">Giao thành công</option>
+                      </select>
+                    </div>
 
-        <div class="test-lab-grid">
-          <div class="card test-card">
-            <div class="card-header">
-              <h3>1. Ô Nhập Tiêu Chuẩn (Input & Textarea)</h3>
-              <span class="badge-tag">Plain / Markdown</span>
-            </div>
-            <div class="card-body">
-              <p class="help-text">Kiểm tra khi gõ trên khung chat, thanh tìm kiếm hoặc form nhập liệu đơn giản.</p>
-              <div class="form-group">
-                <label>Ô gõ 1 dòng (Single-line Input):</label>
-                <input type="text" id="test-single-input" class="test-field"
-                  placeholder="Ví dụ: gõ :email hoặc :addr vào đây...">
-              </div>
-              <div class="form-group">
-                <label>Khung gõ nhiều dòng (Multi-line Textarea):</label>
-                <textarea id="test-multi-textarea" class="test-field" rows="6"
-                  placeholder="Gõ thử các phím tắt :meeting, :sig,... tại đây"></textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="card test-card">
-            <div class="card-header">
-              <h3>2. Trình Soạn Thảo Phong Phú (WYSIWYG)</h3>
-              <span class="badge-tag badge-accent">WYSIWYG Rich Text</span>
-            </div>
-            <div class="card-body">
-              <p class="help-text">Mô phỏng khung soạn thảo của Gmail, Notion, Slack, Docs. Markdown sẽ tự bung thành
-                chữ in đậm, link, danh sách.</p>
-              <div class="form-group">
-                <label>Khung Soạn Thảo Phong Phú (Rich Editor):</label>
-                <div id="test-rich-editor" class="test-field rich-editable" contenteditable="true"
-                  data-placeholder="Gõ thử :sig hoặc :meeting vào đây để thấy Markdown tự bung thành chữ in đậm, link đầy đủ...">
+                    <div class="form-stack">
+                      <label>Custom Simulated Dropdown:</label>
+                      <div class="custom-dropdown-simulator" id="custom-dropdown-test">
+                        <button type="button" class="custom-select-trigger" id="custom-select-trigger">
+                          <span id="custom-select-val">Chọn quyền thành viên...</span>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </button>
+                        <div class="custom-select-menu" id="custom-select-menu">
+                          <div class="custom-select-option" data-value="viewer">Khách xem (Viewer)</div>
+                          <div class="custom-select-option" data-value="editor">Biên tập viên (Editor)</div>
+                          <div class="custom-select-option" data-value="admin">Quản trị viên (Admin)</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- TAB: MACROS (FORM AUTOMATION) -->
-      <section id="tab-macros" class="tab-pane">
-        <header class="section-header">
-          <div>
-            <h2>Kịch Bản Tự Động Hóa (Macro Automation)</h2>
-            <p class="subtitle">Tự động điền biểu mẫu, chọn dropdown và bấm nút Submit theo đúng chuỗi thao tác đã ghi.</p>
+        <!-- ========================================================
+             TAB 3: KỊCH BẢN MACRO
+             ======================================================== -->
+        <section id="tab-macros" class="tab-pane">
+          <div class="glass-scroll-container">
+            <header class="glass-view-header">
+              <div>
+                <h2>Kịch Bản Tự Động Hóa (Macro Automation)</h2>
+                <p>Tự động điền form, chọn dropdown và click submit theo đúng chuỗi thao tác đã ghi.</p>
+              </div>
+              <button type="button" class="btn-glass-primary" id="btn-create-macro-guide">Ghi Kịch Bản Mới</button>
+            </header>
+
+            <div class="macros-glass-grid" id="macros-list-container">
+              <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Macro Step Modal -->
+            <div id="macro-step-modal" class="glass-modal-overlay" style="display: none;">
+              <div class="glass-modal-window">
+                <div class="modal-head">
+                  <h3 id="step-modal-title">Chi Tiết Các Bước Kịch Bản</h3>
+                  <button type="button" class="btn-modal-close" id="btn-close-step-modal">✕</button>
+                </div>
+                <div class="modal-body">
+                  <div id="step-modal-list" class="steps-builder-list"></div>
+                </div>
+                <div class="modal-foot">
+                  <button type="button" class="btn-glass-ghost" id="btn-cancel-step-modal">Hủy Bỏ</button>
+                  <button type="button" class="btn-glass-primary" id="btn-save-step-modal">Lưu Cấu Hình</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <button class="btn btn-primary" id="btn-create-macro-guide">
-            <span class="rec-dot-small" style="background:#fff; width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px;"></span>
-            Hướng Dẫn Ghi Kịch Bản Mới
+        </section>
+
+        <!-- ========================================================
+             TAB 4: BỘ LỌC URL
+             ======================================================== -->
+        <section id="tab-url-rules" class="tab-pane">
+          <div class="glass-scroll-container">
+            <header class="glass-view-header">
+              <div>
+                <h2>Bộ Lọc Website (Blacklist / Whitelist)</h2>
+                <p>Kiểm soát chặt chẽ những trang web tiện ích được phép hoặc bị cấm mở rộng phím tắt.</p>
+              </div>
+            </header>
+
+            <div class="glass-cards-layout">
+              <!-- Card 1: Chế độ lọc & Thêm quy tắc mới -->
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>1. Cấu Hình Chế Độ & Thêm Quy Tắc</h3>
+                  <span class="glass-pill-tag accent">Quy Tắc URL</span>
+                </div>
+                <div class="card-content">
+                  <div class="form-stack">
+                    <label>Chế Độ Hoạt Động:</label>
+                    <div class="glass-radio-tiles">
+                      <label class="radio-tile">
+                        <input type="radio" name="urlMode" value="blacklist" id="mode-blacklist" checked>
+                        <div>
+                          <strong>Chế Độ Blacklist (Chặn)</strong>
+                          <p>Hoạt động trên TẤT CẢ website, ngoại trừ các tên miền trong danh sách.</p>
+                        </div>
+                      </label>
+                      <label class="radio-tile">
+                        <input type="radio" name="urlMode" value="whitelist" id="mode-whitelist">
+                        <div>
+                          <strong>Chế Độ Whitelist (Cho phép)</strong>
+                          <p>CHỈ hoạt động DUY NHẤT trên các trang web có trong danh sách chỉ định.</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="form-stack" style="margin-top: 14px;">
+                    <label>Thêm URL hoặc Tên Miền Mới:</label>
+                    <div class="inline-add-row">
+                      <input type="text" id="input-new-rule" class="glass-input-field"
+                        placeholder="Ví dụ: mail.google.com hoặc *://facebook.com/*">
+                      <button type="button" class="btn-glass-primary" id="btn-add-rule">Thêm Quy Tắc</button>
+                    </div>
+                    <span class="glass-hint">Hỗ trợ tên miền trực tiếp (<code>github.com</code>) hoặc ký tự đại diện
+                      wildcard (<code>*://domain.com/*</code>).</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Danh sách quy tắc hiện tại -->
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>2. Danh Sách Quy Tắc Đang Áp Dụng</h3>
+                  <span class="glass-pill-tag success"><span id="rule-count">0</span> quy tắc</span>
+                </div>
+                <div class="card-content">
+                  <p class="glass-hint">Các tên miền dưới đây đang được áp dụng bộ lọc theo chế độ bạn đã chọn ở bên
+                    trái. Click nút ✕ để xóa quy tắc.</p>
+                  <div class="rules-tags-list" id="rules-tags-list"
+                    style="min-height: 120px; align-content: flex-start;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             TAB 5: SAO LƯU & KHÔI PHỤC
+             ======================================================== -->
+        <section id="tab-backup" class="tab-pane">
+          <div class="glass-scroll-container">
+            <header class="glass-view-header">
+              <div>
+                <h2>Sao Lưu & Khôi Phục Dữ Liệu</h2>
+                <p>Xuất danh sách phím tắt để lưu trữ, hoặc chia sẻ sang máy tính khác dưới dạng JSON hoặc CSV.</p>
+              </div>
+            </header>
+
+            <div class="glass-cards-layout">
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>Xuất Dữ Liệu (Export)</h3>
+                </div>
+                <div class="card-content">
+                  <p class="glass-hint">Tải toàn bộ danh sách phím tắt và cấu hình về máy tính cá nhân để lưu trữ an
+                    toàn.</p>
+                  <div class="backup-units-stack">
+                    <div class="backup-item-box">
+                      <div>
+                        <strong>Định dạng JSON (.json)</strong>
+                        <p class="glass-hint">Đầy đủ định dạng Markdown, biến động và kịch bản Macro.</p>
+                      </div>
+                      <button type="button" class="btn-glass-ghost" id="btn-export-json">Tải JSON</button>
+                    </div>
+                    <div class="backup-item-box">
+                      <div>
+                        <strong>Định dạng CSV (.csv)</strong>
+                        <p class="glass-hint">Dễ dàng mở và chỉnh sửa bằng Microsoft Excel hoặc Google Sheets.</p>
+                      </div>
+                      <button type="button" class="btn-glass-ghost" id="btn-export-csv">Tải CSV</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>Nhập Dữ Liệu (Import)</h3>
+                </div>
+                <div class="card-content">
+                  <div class="glass-dropzone" id="file-dropzone">
+                    <input type="file" id="file-import" accept=".json,.csv" style="display:none;">
+                    <span class="dropzone-emoji">📂</span>
+                    <p class="dropzone-text">Kéo thả tệp <strong>.json</strong> hoặc <strong>.csv</strong> vào đây, hoặc
+                      click để chọn</p>
+                    <span id="file-chosen-name" class="dropzone-tag"></span>
+                  </div>
+                  <div style="display:flex;justify-content:flex-end;margin-top:14px;">
+                    <button type="button" class="btn-glass-primary" id="btn-process-import">Tiến Hành Nhập Dữ
+                      Liệu</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ========================================================
+             TAB 6: CÀI ĐẶT
+             ======================================================== -->
+        <section id="tab-settings" class="tab-pane">
+          <div class="glass-scroll-container">
+            <header class="glass-view-header">
+              <div>
+                <h2>Cài Đặt Hệ Thống</h2>
+                <p>Tùy chỉnh hành vi kích hoạt phím tắt và hiệu năng của tiện ích.</p>
+              </div>
+            </header>
+
+            <div class="glass-cards-layout">
+              <!-- Card 1: Hành vi kích hoạt -->
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>1. Kích Hoạt & Hành Vi Bung Phím Tắt</h3>
+                  <span class="glass-pill-tag accent">Kích Hoạt</span>
+                </div>
+                <div class="card-content">
+                  <div class="setting-item-glass">
+                    <div>
+                      <strong>Bật tính năng mở rộng phím tắt toàn cục</strong>
+                      <p class="glass-hint">Khi tắt, phím tắt sẽ tạm ngưng hoạt động trên mọi trang web.</p>
+                    </div>
+                    <label class="liquid-switch-label">
+                      <input type="checkbox" id="check-global-enable" checked>
+                      <span class="liquid-switch-track"></span>
+                    </label>
+                  </div>
+
+                  <div class="setting-item-glass" style="border-bottom: none;">
+                    <div>
+                      <strong>Chế độ kích hoạt phím tắt</strong>
+                      <p class="glass-hint">Chọn cách tiện ích nhận diện thời điểm bung văn bản.</p>
+                    </div>
+                    <div class="setting-radios">
+                      <label class="radio-clean-label">
+                        <input type="radio" name="triggerType" value="immediate" id="trigger-immediate" checked>
+                        <span>Bung tức thì khi gõ xong từ khóa</span>
+                      </label>
+                      <label class="radio-clean-label">
+                        <input type="radio" name="triggerType" value="delimiter" id="trigger-delimiter">
+                        <span>Cần gõ thêm phím cách hoặc dấu câu (Space, Enter, Tab...)</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 2: Hiệu năng & Lưu cấu hình -->
+              <div class="glass-card">
+                <div class="card-head">
+                  <h3>2. Hệ Thống & Lưu Cấu Hình</h3>
+                  <span class="glass-pill-tag success">Liquid Glass v2</span>
+                </div>
+                <div class="card-content" style="justify-content: space-between; height: calc(100% - 44px);">
+                  <div>
+                    <div class="setting-item-glass">
+                      <div>
+                        <strong>Cơ chế đồng bộ hóa</strong>
+                        <p class="glass-hint">Dữ liệu được lưu trữ tự động vào Chrome Storage Local và đồng bộ tức thì.
+                        </p>
+                      </div>
+                      <span class="glass-pill-tag success">Đã kích hoạt</span>
+                    </div>
+
+                    <div class="setting-item-glass" style="border-bottom: none;">
+                      <div>
+                        <strong>Giao diện chuẩn</strong>
+                        <p class="glass-hint">Thiết kế chuẩn Liquid Glass Light Theme theo tài liệu Apple WWDC.</p>
+                      </div>
+                      <span class="glass-pill-tag accent">Light Only</span>
+                    </div>
+                  </div>
+
+                  <!-- Theme radios fallback for options.js -->
+                  <div style="display:none;">
+                    <input type="radio" name="themeSetting" value="light" id="theme-radio-light" checked>
+                    <input type="radio" name="themeSetting" value="dark" id="theme-radio-dark">
+                  </div>
+
+                  <div style="display:flex; justify-content:flex-end; margin-top: 18px;">
+                    <button type="button" class="btn-glass-primary" id="btn-save-settings"
+                      style="padding: 9px 20px; font-size: 13px;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                        style="width: 14px; height: 14px;">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      <span>Lưu Thiết Lập</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ========================================================
+           RIGHT LIQUID GLASS NAVIGATION SIDEBAR (MENU BÊN PHẢI)
+           ======================================================== -->
+      <aside class="liquid-sidebar-right">
+        <!-- Top Identity & Brand Badge -->
+        <div class="sidebar-brand-block">
+          <div class="brand-crystal-ring">
+            <span class="brand-crystal-icon">⚡</span>
+          </div>
+          <div class="brand-crystal-info">
+            <div class="brand-name-wrap">
+              <span class="brand-name-text">Text Expander</span>
+              <span class="brand-pro-pill">PRO</span>
+            </div>
+            <span class="brand-sub-status">Liquid Glass v2</span>
+          </div>
+        </div>
+
+        <!-- Primary CTA: + Tạo Phím Tắt Button -->
+        <div class="sidebar-action-wrap">
+          <button type="button" class="btn-create-liquid" id="btn-create-new">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>Tạo Phím Tắt</span>
           </button>
-        </header>
-
-        <div class="card" style="margin-bottom: 20px;">
-          <div class="card-body" style="display: flex; align-items: center; gap: 16px; background: rgba(99, 102, 241, 0.08); border-radius: 8px;">
-            <div style="font-size: 28px;">💡</div>
-            <div>
-              <strong style="color: var(--text-primary); font-size: 14px;">Cách tạo kịch bản tự động hóa:</strong>
-              <p class="help-text" style="margin: 4px 0 0 0;">
-                1. Mở trang web bạn muốn tự động điền form (ví dụ: trang Ticket CRM, Admin...).<br>
-                2. Bấm icon <strong>Auto Text Expander</strong> trên thanh tiện ích Chrome &rarr; Chọn <strong>"Ghi Thao Tác"</strong>.<br>
-                3. Thao tác trên form như bình thường (nhập dữ liệu, chọn mục, bấm submit) &rarr; Bấm <strong>"Dừng & Lưu"</strong>.
-              </p>
-            </div>
-          </div>
         </div>
 
-        <div class="macros-list-grid" id="macros-list-container">
-          <!-- Injected via JS -->
+        <!-- Smooth Nav Items (Uses .nav-item for JS compatibility!) -->
+        <nav class="sidebar-nav-list" role="tablist">
+          <button type="button" class="nav-item active" data-tab="snippets" role="tab" aria-selected="true">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+            </div>
+            <span class="nav-label">Phím Tắt</span>
+            <span class="nav-count-pill" id="badge-total-snippets">0</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="test-box" role="tab" aria-selected="false">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                  d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2">
+                </path>
+                <path d="M8.5 2h7"></path>
+                <path d="M7 16h10"></path>
+              </svg>
+            </div>
+            <span class="nav-label">Thử Nghiệm</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="macros" role="tab" aria-selected="false">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+            </div>
+            <span class="nav-label">Macro</span>
+            <span class="nav-count-pill" id="badge-total-macros">0</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="url-rules" role="tab" aria-selected="false">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+            </div>
+            <span class="nav-label">Bộ Lọc URL</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="backup" role="tab" aria-selected="false">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <span class="nav-label">Sao Lưu</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="settings" role="tab" aria-selected="false">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+              </svg>
+            </div>
+            <span class="nav-label">Cài Đặt</span>
+          </button>
+        </nav>
+
+        <!-- Hidden theme controls for options.js compatibility -->
+        <div style="display:none;">
+          <button type="button" id="theme-btn-light" class="active"></button>
+          <button type="button" id="theme-btn-dark"></button>
         </div>
 
-        <!-- Macro Step Editor Modal -->
-        <div id="macro-step-modal" class="ate-macro-overlay" style="display: none;">
-          <div class="ate-macro-modal" style="max-width: 620px;">
-            <div class="ate-modal-header">
-              <h3 class="ate-modal-title" id="step-modal-title">Chi Tiết Các Bước Kịch Bản</h3>
-              <button type="button" class="btn-icon" id="btn-close-step-modal">✕</button>
+        <!-- Sidebar Footer Status -->
+        <div class="sidebar-foot-status">
+          <span class="status-live-dot"></span>
+          <span>Đồng bộ tự động</span>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="app-toast" class="app-toast"></div>
+
+    <!-- MODAL TẠO DANH MỤC MỚI (LIQUID GLASS MODAL) -->
+    <div id="category-modal" class="glass-modal-overlay" style="display: none;">
+      <div class="glass-modal-window" style="max-width: 460px;">
+        <div class="modal-head">
+          <h3>Tạo Danh Mục Mới</h3>
+          <button type="button" class="btn-modal-close" id="btn-close-category-modal">✕</button>
+        </div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="form-stack">
+            <label>Tên danh mục:</label>
+            <input type="text" id="input-new-cat-name" class="glass-input-field"
+              placeholder="Ví dụ: Marketing, Tài chính, Bán hàng..." autocomplete="off">
+          </div>
+          <div class="form-stack">
+            <label>Chọn biểu tượng SVG:</label>
+            <div class="cat-icon-picker-grid" id="cat-icon-picker">
+              <!-- Populated via options.js -->
             </div>
-            <div class="ate-modal-body">
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
-                <div>
-                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px; display:block;">Từ Khóa Phím Tắt (Gõ trong ô)</label>
-                  <input type="text" id="step-modal-shortcut" class="form-control" style="font-family:monospace; padding:6px 10px; font-size:13px;" placeholder="Ví dụ: :macro52">
-                </div>
-                <div>
-                  <label style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px; display:block;">Phím Nóng Bàn Phím</label>
-                  <input type="text" id="step-modal-hotkey" class="form-control" style="font-family:monospace; padding:6px 10px; font-size:13px;" placeholder="Ví dụ: Alt+1 hoặc Alt+S">
-                </div>
-              </div>
-              <div id="step-modal-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto;">
-                <!-- Step items injected by JS -->
-              </div>
-            </div>
-            <div class="ate-modal-footer">
-              <button type="button" class="btn btn-secondary" id="btn-cancel-step-modal">Đóng</button>
-              <button type="button" class="btn btn-primary" id="btn-save-step-modal">Lưu Thay Đổi</button>
-            </div>
+            <input type="hidden" id="input-new-cat-icon" value="folder">
           </div>
         </div>
-      </section>
-
-      <!-- TAB 3: URL RULES -->
-      <section id="tab-url-rules" class="tab-pane">
-        <header class="section-header">
-          <div>
-            <h2>Bộ Lọc Website (URL Rules)</h2>
-            <p class="subtitle">Chủ động kiểm soát những trang web nào extension được phép hoặc không được phép tự động
-              mở rộng từ khóa.</p>
-          </div>
-        </header>
-
-        <div class="url-rules-container">
-          <div class="card">
-            <div class="card-header">
-              <h3>Chế Độ Lọc Trang Web</h3>
-            </div>
-            <div class="card-body">
-              <div class="radio-group-boxes">
-                <label class="radio-box">
-                  <input type="radio" name="urlMode" value="blacklist" id="mode-blacklist" checked>
-                  <div class="radio-box-content">
-                    <strong>Chế Độ Blacklist (Danh Sách Chặn)</strong>
-                    <span>Hoạt động trên TẤT CẢ website, ngoại trừ những trang hoặc tên miền được liệt kê bên
-                      dưới.</span>
-                  </div>
-                </label>
-
-                <label class="radio-box">
-                  <input type="radio" name="urlMode" value="whitelist" id="mode-whitelist">
-                  <div class="radio-box-content">
-                    <strong>Chế Độ Whitelist (Danh Sách Cho Phép)</strong>
-                    <span>CHỈ hoạt động DUY NHẤT trên các trang hoặc tên miền được chỉ định bên dưới.</span>
-                  </div>
-                </label>
-              </div>
-
-              <hr class="divider">
-
-              <div class="add-rule-form">
-                <div class="form-group flex-1">
-                  <label for="input-new-rule">Thêm URL hoặc Tên Miền:</label>
-                  <div class="input-with-button">
-                    <input type="text" id="input-new-rule" placeholder="Ví dụ: mail.google.com hoặc *://facebook.com/*">
-                    <button class="btn btn-primary" id="btn-add-rule">Thêm Quy Tắc</button>
-                  </div>
-                  <span class="help-text">Hỗ trợ tên miền trực tiếp (<code>github.com</code>) hoặc ký tự đại diện
-                    wildcard (<code>*://domain.com/*</code>).</span>
-                </div>
-              </div>
-
-              <div class="rules-list-section">
-                <h4>Danh sách các URL hiện tại (<span id="rule-count">0</span>):</h4>
-                <div class="rules-tags-list" id="rules-tags-list">
-                  <!-- Render via JS -->
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-glass-ghost" id="btn-cancel-category-modal">Hủy Bỏ</button>
+          <button type="button" class="btn-glass-primary" id="btn-save-new-category">Tạo Danh Mục</button>
         </div>
-      </section>
-
-      <!-- TAB 4: IMPORT / EXPORT -->
-      <section id="tab-backup" class="tab-pane">
-        <header class="section-header">
-          <div>
-            <h2>Sao Lưu & Khôi Phục Dữ Liệu</h2>
-            <p class="subtitle">Xuất danh sách phím tắt để lưu trữ, hoặc chia sẻ sang máy tính khác dưới dạng JSON hoặc
-              CSV.</p>
-          </div>
-        </header>
-
-        <div class="backup-grid">
-          <!-- Export Card -->
-          <div class="card">
-            <div class="card-header">
-              <h3>Xuất Dữ Liệu (Export)</h3>
-            </div>
-            <div class="card-body">
-              <p class="help-text">Tải toàn bộ danh sách phím tắt và cấu hình về máy tính cá nhân để lưu trữ an toàn.
-              </p>
-
-              <div class="export-options">
-                <div class="export-item">
-                  <div>
-                    <strong>Định dạng JSON (.json)</strong>
-                    <p class="help-text">Đầy đủ thông tin, hỗ trợ đầy đủ Markdown đa dòng và cấu hình cài đặt.</p>
-                  </div>
-                  <button class="btn btn-secondary" id="btn-export-json">Xuất JSON</button>
-                </div>
-
-                <div class="export-item">
-                  <div>
-                    <strong>Định dạng Excel / CSV (.csv)</strong>
-                    <p class="help-text">Dễ dàng mở và chỉnh sửa hàng loạt bằng Microsoft Excel hoặc Google Sheets.</p>
-                  </div>
-                  <button class="btn btn-secondary" id="btn-export-csv">Xuất CSV</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Import Card -->
-          <div class="card">
-            <div class="card-header">
-              <h3>Nhập Dữ Liệu (Import)</h3>
-            </div>
-            <div class="card-body">
-              <p class="help-text">Tải file <code>.json</code> hoặc <code>.csv</code> đã lưu trước đó vào extension.</p>
-
-              <div class="import-mode-selection">
-                <label class="radio-label">
-                  <input type="radio" name="importMode" value="merge" checked>
-                  <span><b>Hợp nhất (Merge):</b> Thêm các phím tắt mới vào danh sách hiện tại (giữ nguyên phím tắt
-                    cũ).</span>
-                </label>
-                <label class="radio-label">
-                  <input type="radio" name="importMode" value="overwrite">
-                  <span><b>Ghi đè (Overwrite):</b> Thay thế toàn bộ danh sách cũ bằng dữ liệu trong file.</span>
-                </label>
-              </div>
-
-              <div class="file-dropzone" id="file-dropzone">
-                <input type="file" id="file-import" accept=".json, .csv" style="display:none;">
-                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="17 8 12 3 7 8"></polyline>
-                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-                <p><b>Nhấp để chọn file</b> hoặc kéo thả file JSON/CSV vào đây</p>
-                <span class="file-info" id="file-chosen-name">Chưa chọn file nào</span>
-              </div>
-
-              <div class="import-action-bar">
-                <button class="btn btn-primary" id="btn-process-import" disabled>Bắt Đầu Nhập Dữ Liệu</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- TAB 5: SETTINGS -->
-      <section id="tab-settings" class="tab-pane">
-        <header class="section-header">
-          <div>
-            <h2>Cài Đặt Hoạt Động Chung</h2>
-            <p class="subtitle">Điều chỉnh phương thức kích hoạt phím tắt và trải nghiệm mở rộng văn bản.</p>
-          </div>
-          <button class="btn btn-primary" id="btn-save-settings">Lưu Cấu Hình</button>
-        </header>
-
-        <div class="card">
-          <div class="card-body form-body">
-            <div class="form-group">
-              <label>Phương thức kích hoạt mở rộng (Expansion Trigger):</label>
-              <div class="radio-group-boxes">
-                <label class="radio-box">
-                  <input type="radio" name="triggerType" value="immediate" id="trigger-immediate" checked>
-                  <div class="radio-box-content">
-                    <strong>Kích hoạt tức thì (Ngay khi gõ xong ký tự cuối)</strong>
-                    <span>Tiện lợi nhất. Khi bạn vừa gõ xong phím tắt (ví dụ <code>:email</code>), nội dung sẽ lập tức
-                      bung ra.</span>
-                  </div>
-                </label>
-
-                <label class="radio-box">
-                  <input type="radio" name="triggerType" value="delimiter" id="trigger-delimiter">
-                  <div class="radio-box-content">
-                    <strong>Kích hoạt sau dấu phân cách (Phím Space, Enter hoặc Tab)</strong>
-                    <span>Văn bản chỉ mở rộng khi bạn gõ xong phím tắt và nhấn thêm phím Cách (Space) hoặc Enter.</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <hr class="divider">
-
-            <div class="form-group">
-              <label>Chế độ giao diện (Appearance Theme):</label>
-              <div class="radio-group-boxes">
-                <label class="radio-box">
-                  <input type="radio" name="themeSetting" value="dark" id="theme-radio-dark" checked>
-                  <div class="radio-box-content">
-                    <strong>Giao diện Tối (Dark Theme - Độ tương phản cao)</strong>
-                    <span>Tông màu than chì obsidian sâu thẳm, chống mỏi mắt với viền nét và màu nhấn tím ánh xanh rực
-                      rỡ.</span>
-                  </div>
-                </label>
-
-                <label class="radio-box">
-                  <input type="radio" name="themeSetting" value="light" id="theme-radio-light">
-                  <div class="radio-box-content">
-                    <strong>Giao diện Sáng (Light Theme - Thanh lịch, sắc sảo)</strong>
-                    <span>Nền trắng tuyết tinh khôi, chữ đậm rõ nét, đổ bóng mềm và độ tương phản cao dễ đọc ban
-                      ngày.</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <hr class="divider">
-
-            <div class="form-row switch-row">
-              <label class="toggle-switch">
-                <input type="checkbox" id="check-global-enable" checked>
-                <span class="slider"></span>
-              </label>
-              <div class="switch-label">
-                <strong>Bật hoạt động Extension toàn hệ thống</strong>
-                <p class="help-text">Tắt công tắc này sẽ tạm dừng việc mở rộng từ khóa trên mọi trang web mà không làm
-                  mất phím tắt đã lưu.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
+      </div>
+    </div>
   </div>
 
-  <!-- Toast Notification System -->
-  <div id="app-toast" class="app-toast"></div>
-
-  <!-- Scripts: Local Marked, Local DOMPurify, Options Logic -->
+  <!-- Markdown & HTML Sanitizer Libraries -->
   <script src="../lib/marked.min.js"></script>
   <script src="../lib/purify.min.js"></script>
-  <script src="options.js"></script>
+  <script src="options.js?v=7.4"></script>
 </body>
 
 </html>

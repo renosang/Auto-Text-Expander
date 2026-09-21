@@ -8,28 +8,45 @@
       shortcut: ":email",
       label: "Email cá nhân",
       content: "contact@example.com",
-      renderRichText: false
+      renderRichText: false,
+      category: "personal",
+      tags: ["email", "contact"]
     },
     {
       id: "default-2",
       shortcut: ":sig",
       label: "Chữ ký công việc Markdown",
-      content: "**Trân trọng,**\n\n**Nguyễn Văn A** | *Senior Product Specialist*\n- Phone: `+84 987 654 321`\n- Website: [mycompany.vn](https://mycompany.vn)",
-      renderRichText: true
+      content: "**Trân trọng,**\n\n**Nguyễn Văn A** | *Senior Product Specialist*\n- Phone: `+84 987 654 321`\n- Website: [mycompany.vn](https://mycompany.vn)\n\n{{cursor}}",
+      renderRichText: true,
+      category: "work",
+      tags: ["signature", "email", "work"]
     },
     {
       id: "default-3",
-      shortcut: ":meeting",
-      label: "Mẫu mời họp nhanh",
-      content: "Chào bạn,\n\nMình xin phép gửi link tham gia buổi họp thảo luận tiến độ dự án:\n- **Thời gian:** 10:00 AM (Thứ Hai)\n- **Phòng họp:** [Google Meet](https://meet.google.com/abc-def-xyz)\n\nHẹn gặp lại bạn!",
-      renderRichText: true
+      shortcut: ":cskh",
+      label: "Mẫu CSKH - Xác nhận đơn hàng",
+      content: "Chào bạn **{{name:Quý khách}}**,\n\nĐơn hàng **#{{order_id:DH-1001}}** của bạn đã được tiếp nhận vào lúc {{time}} ngày {{date}}.\n- Trạng thái vận chuyển: **{{choice:Hỏa tốc 2h|Tiêu chuẩn 2-3 ngày|Giao tiết kiệm}}**\n- Địa chỉ giao hàng: {{cursor}}\n\nCảm ơn bạn đã tin tưởng ủng hộ!",
+      renderRichText: true,
+      category: "support",
+      tags: ["cskh", "order", "support"]
     },
     {
       id: "default-4",
+      shortcut: ":meeting",
+      label: "Mẫu mời họp nhanh",
+      content: "Chào team,\n\nMình xin phép gửi link tham gia buổi họp thảo luận tiến độ dự án:\n- **Thời gian:** 10:00 AM ({{date+1d:DD/MM/YYYY}})\n- **Phòng họp:** [Google Meet](https://meet.google.com/abc-def-xyz)\n\nNội dung chính:\n{{cursor}}\n\nHẹn gặp lại mọi người!",
+      renderRichText: true,
+      category: "work",
+      tags: ["meeting", "work"]
+    },
+    {
+      id: "default-5",
       shortcut: ":addr",
       label: "Địa chỉ văn phòng",
       content: "Tầng 12, Tòa nhà Landmark, 123 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh",
-      renderRichText: false
+      renderRichText: false,
+      category: "general",
+      tags: ["address", "office"]
     }
   ];
 
@@ -144,12 +161,280 @@
     return div.innerHTML;
   }
 
+  // -------------------------------------------------------------
+  // DYNAMIC VARIABLES & TEMPLATE SYSTEM
+  // -------------------------------------------------------------
+  function formatDate(d, fmt = 'DD/MM/YYYY') {
+    if (!fmt) fmt = 'DD/MM/YYYY';
+    const YYYY = String(d.getFullYear());
+    const YY = YYYY.slice(-2);
+    const MM = String(d.getMonth() + 1).padStart(2, '0');
+    const DD = String(d.getDate()).padStart(2, '0');
+    const HH = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+
+    return fmt
+      .replace(/YYYY/g, YYYY)
+      .replace(/YY/g, YY)
+      .replace(/MM/g, MM)
+      .replace(/DD/g, DD)
+      .replace(/HH/g, HH)
+      .replace(/mm/g, mm)
+      .replace(/ss/g, ss);
+  }
+
+  async function resolveSystemVariables(text) {
+    if (!text) return '';
+    let result = text;
+    const now = new Date();
+
+    // 1. Relative dates: {{date+7d}}, {{date-3d}}, {{date+7d:YYYY-MM-DD}}
+    result = result.replace(/\{\{date([+-]\d+)d(?::([^}]+))?\}\}/gi, (match, daysStr, fmt) => {
+      const days = parseInt(daysStr, 10) || 0;
+      const targetDate = new Date(now.getTime() + days * 86400000);
+      return formatDate(targetDate, fmt || 'DD/MM/YYYY');
+    });
+
+    // 2. Custom formatted date: {{date:FORMAT}}
+    result = result.replace(/\{\{date:([^}]+)\}\}/gi, (match, fmt) => {
+      return formatDate(now, fmt);
+    });
+
+    // 3. Default date: {{date}}
+    result = result.replace(/\{\{date\}\}/gi, () => formatDate(now, 'DD/MM/YYYY'));
+
+    // 4. Formatted time: {{time:FORMAT}} or {{time}}
+    result = result.replace(/\{\{time:([^}]+)\}\}/gi, (match, fmt) => {
+      return formatDate(now, fmt);
+    });
+    result = result.replace(/\{\{time\}\}/gi, () => formatDate(now, 'HH:mm'));
+
+    // 5. Page context: {{url}}, {{domain}}, {{title}}
+    result = result.replace(/\{\{url\}\}/gi, () => window.location.href);
+    result = result.replace(/\{\{domain\}\}/gi, () => window.location.hostname);
+    result = result.replace(/\{\{title\}\}/gi, () => document.title || '');
+
+    // 6. Clipboard: {{clipboard}}
+    if (result.includes('{{clipboard}}')) {
+      let clip = '';
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          clip = await navigator.clipboard.readText();
+        }
+      } catch (e) {
+        console.warn('[Auto Text Expander] Không thể đọc clipboard:', e);
+      }
+      result = result.replace(/\{\{clipboard\}\}/gi, () => clip);
+    }
+
+    return result;
+  }
+
+  // Trích xuất các biến điền tương tác từ mẫu (loại trừ các biến hệ thống)
+  function extractFillInFields(text) {
+    if (!text) return [];
+    const fields = [];
+    const seenKeys = new Set();
+    const SYSTEM_TAGS = ['date', 'time', 'clipboard', 'url', 'domain', 'title', 'cursor'];
+
+    const regex = /\{\{([^}]+)\}\}/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      const rawInner = match[1].trim();
+      const fullTag = match[0];
+
+      // Bỏ qua nếu là biến hệ thống hoặc cursor
+      if (SYSTEM_TAGS.some(tag => rawInner === tag || rawInner.startsWith(tag + ':') || rawInner.startsWith(tag + '+') || rawInner.startsWith(tag + '-'))) {
+        continue;
+      }
+
+      if (rawInner.startsWith('choice:')) {
+        const parts = rawInner.slice(7).split(':');
+        let label = 'Tùy chọn';
+        let optionsStr = parts[0];
+        if (parts.length > 1) {
+          label = parts[0];
+          optionsStr = parts[1];
+        }
+        const options = optionsStr.split('|').map(o => o.trim()).filter(Boolean);
+        const key = fullTag;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          fields.push({
+            type: 'choice',
+            key,
+            label,
+            options,
+            defaultValue: options[0] || '',
+            raw: fullTag
+          });
+        }
+      } else {
+        // Biến nhập liệu: {{name}} hoặc {{name:Gợi ý}}
+        const colonIdx = rawInner.indexOf(':');
+        let keyName = rawInner;
+        let defaultValue = '';
+        if (colonIdx !== -1) {
+          keyName = rawInner.slice(0, colonIdx).trim();
+          defaultValue = rawInner.slice(colonIdx + 1).trim();
+        }
+        const key = fullTag;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          fields.push({
+            type: 'text',
+            key,
+            label: keyName,
+            defaultValue,
+            raw: fullTag
+          });
+        }
+      }
+    }
+    return fields;
+  }
+
+  let activeFillInOverlay = null;
+
+  // Hiển thị Popover tương tác điền nhanh dữ liệu
+  function showFillInModal(snippet, fields, onConfirm, onCancel) {
+    if (activeFillInOverlay) {
+      activeFillInOverlay.remove();
+      activeFillInOverlay = null;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'ate-fillin-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'ate-fillin-modal';
+
+    const header = document.createElement('div');
+    header.className = 'ate-fillin-header';
+    header.innerHTML = `
+      <h3 class="ate-fillin-title">
+        <span>⚡</span>
+        <span>Điền thông tin nhanh</span>
+        <span class="ate-fillin-shortcut-badge">${escapeHtml(snippet.shortcut)}</span>
+      </h3>
+      <span style="font-size:12px;color:#94a3b8;">${escapeHtml(snippet.label || '')}</span>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'ate-fillin-body';
+
+    const inputsMap = new Map();
+
+    fields.forEach((field) => {
+      const fieldEl = document.createElement('div');
+      fieldEl.className = 'ate-fillin-field';
+
+      const label = document.createElement('label');
+      label.className = 'ate-fillin-label';
+      label.innerHTML = `<span>${escapeHtml(field.label)}</span> <span class="var-name">(${escapeHtml(field.type === 'choice' ? 'Lựa chọn' : field.raw)})</span>`;
+      fieldEl.appendChild(label);
+
+      if (field.type === 'choice') {
+        const select = document.createElement('select');
+        select.className = 'ate-fillin-select';
+        field.options.forEach(opt => {
+          const optionEl = document.createElement('option');
+          optionEl.value = opt;
+          optionEl.textContent = opt;
+          select.appendChild(optionEl);
+        });
+        fieldEl.appendChild(select);
+        inputsMap.set(field.key, select);
+      } else {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'ate-fillin-input';
+        input.value = field.defaultValue || '';
+        input.placeholder = `Nhập ${field.label}...`;
+        fieldEl.appendChild(input);
+        inputsMap.set(field.key, input);
+      }
+
+      body.appendChild(fieldEl);
+    });
+
+    const footer = document.createElement('div');
+    footer.className = 'ate-fillin-footer';
+    footer.innerHTML = `
+      <div class="ate-fillin-hint">
+        <span>[Tab] Chuyển ô • [Enter] Chèn • [Esc] Hủy</span>
+      </div>
+      <div class="ate-fillin-actions">
+        <button type="button" class="ate-btn-fillin-cancel">Hủy (Esc)</button>
+        <button type="button" class="ate-btn-fillin-submit">
+          <span>✓</span> Chèn ngay (Enter)
+        </button>
+      </div>
+    `;
+
+    modal.appendChild(header);
+    modal.appendChild(body);
+    modal.appendChild(footer);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    activeFillInOverlay = overlay;
+
+    // Tự động focus vào ô đầu tiên
+    const firstInput = body.querySelector('input, select');
+    if (firstInput) {
+      setTimeout(() => firstInput.focus(), 60);
+    }
+
+    function handleConfirm() {
+      const values = {};
+      fields.forEach(field => {
+        const inputEl = inputsMap.get(field.key);
+        values[field.key] = inputEl ? inputEl.value : (field.defaultValue || '');
+      });
+      cleanup();
+      onConfirm(values);
+    }
+
+    function handleCancel() {
+      cleanup();
+      if (onCancel) onCancel();
+    }
+
+    function cleanup() {
+      window.removeEventListener('keydown', onKeyDown, true);
+      if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+      activeFillInOverlay = null;
+    }
+
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleCancel();
+      } else if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        handleConfirm();
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown, true);
+    footer.querySelector('.ate-btn-fillin-cancel').addEventListener('click', handleCancel);
+    footer.querySelector('.ate-btn-fillin-submit').addEventListener('click', handleConfirm);
+  }
+
   // Chuyển đổi Markdown sang Safe HTML
   function renderMarkdownToHtml(markdownText) {
     try {
       if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
         const rawHtml = marked.parse(markdownText);
-        return DOMPurify.sanitize(rawHtml);
+        return DOMPurify.sanitize(rawHtml, {
+          ADD_TAGS: ['span'],
+          ADD_ATTR: ['id', 'class', 'style', 'target', 'rel']
+        });
       }
     } catch (err) {
       console.error('[Auto Text Expander] Lỗi parse markdown:', err);
@@ -201,12 +486,10 @@
     str = str.replace(/^\s*[-*_]{3,}\s*$/gm, '');
 
     if (isSingleLine) {
-      // Với input 1 dòng: xóa bullet danh sách và thay thế xuống dòng bằng khoảng trắng
       str = str.replace(/^\s*[-*+]\s+/gm, '');
       str = str.replace(/^\s*\d+\.\s+/gm, '');
       str = str.replace(/\r?\n+/g, ' ');
     } else {
-      // Với textarea: chuyển bullet markdown thành dấu chấm tròn unicode •
       str = str.replace(/^\s*[-*+]\s+/gm, '• ');
     }
 
@@ -217,7 +500,6 @@
   function findMatchingSnippet(text) {
     if (!text || snippets.length === 0) return null;
 
-    // Sắp xếp theo độ dài giảm dần để ưu tiên từ khóa dài hơn
     const sortedSnippets = [...snippets].sort((a, b) => b.shortcut.length - a.shortcut.length);
 
     for (const snippet of sortedSnippets) {
@@ -229,8 +511,6 @@
           return snippet;
         }
       } else {
-        // Delimiter mode: phím tắt nằm trước dấu cách hoặc enter
-        // 1. Khớp nếu kết thúc bằng phím tắt + khoảng trắng / tab / xuống dòng
         if (
           text.endsWith(sc + ' ') || text.toLowerCase().endsWith(sc.toLowerCase() + ' ') ||
           text.endsWith(sc + '\n') || text.toLowerCase().endsWith(sc.toLowerCase() + '\n') ||
@@ -239,7 +519,6 @@
           return snippet;
         }
 
-        // 2. Regex hỗ trợ ranh giới từ hoặc đầu chuỗi
         const matchRegex = new RegExp('(?:^|[\\s.,!?;:\'\"\\(\\[])' + escapeRegExp(sc) + '[\\s\\n]$', 'i');
         if (matchRegex.test(text)) {
           return snippet;
@@ -272,10 +551,6 @@
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  /**
-   * Cập nhật giá trị cho các input / textarea được quản lý bởi React, Vue, Angular và plain HTML.
-   * Sử dụng native prototype setter để bypass setter của framework và cập nhật _valueTracker.
-   */
   function setNativeInputValue(el, newValue, newCaretPos) {
     const isTextarea = el.tagName === 'TEXTAREA';
     const prototype = isTextarea ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype;
@@ -283,27 +558,22 @@
 
     const previousValue = el.value;
 
-    // 1. Gán giá trị thông qua prototype setter để bypass getter/setter của React
     if (prototypeValueSetter) {
       prototypeValueSetter.call(el, newValue);
     } else {
       el.value = newValue;
     }
 
-    // 2. Cập nhật React _valueTracker nếu tồn tại
-    // Đặt giá trị tracker khác với newValue để React's updateValueIfChanged() phát hiện sự thay đổi và kích hoạt onChange
     if (el._valueTracker) {
       el._valueTracker.setValue(previousValue !== newValue ? previousValue : '');
     }
 
-    // 3. Đặt lại con trỏ chuột đúng vị trí
     if (typeof newCaretPos === 'number' && !isNaN(newCaretPos)) {
       try {
         el.setSelectionRange(newCaretPos, newCaretPos);
       } catch (e) {}
     }
 
-    // 4. Phát sự kiện input (chuẩn cho React 16-19, Vue, Angular)
     try {
       const inputEvt = new InputEvent('input', {
         bubbles: true,
@@ -317,60 +587,17 @@
       el.dispatchEvent(new Event('input', { bubbles: true, cancelable: true }));
     }
 
-    // 5. Phát sự kiện change cho các form validation (Formik, React Hook Form, Yup)
     try {
       el.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
     } catch (e) {}
   }
 
-  // Xử lý mở rộng trong Input và Textarea (Hỗ trợ 100% React Controlled Inputs)
-  function handleInputTextarea(el) {
-    if (isExpanding) return;
-    if (!isUrlAllowed()) return;
-    if (el.readOnly || el.disabled) return;
-
-    const caretPos = el.selectionEnd;
-    if (caretPos === undefined || caretPos === null) return;
-
-    const fullValue = el.value || '';
-    const textBeforeCaret = fullValue.slice(0, caretPos);
-    const textAfterCaret = fullValue.slice(caretPos);
-
-    // 1. Kiểm tra nếu khớp với phím tắt của kịch bản Macro
-    const matchedMacro = findMatchingMacro(textBeforeCaret);
-    if (matchedMacro) {
-      isExpanding = true;
-      try {
-        const sc = matchedMacro.shortcut;
-        const removeLen = textBeforeCaret.endsWith(' ') ? sc.length + 1 : sc.length;
-        const startPos = caretPos - removeLen;
-        const expectedFullValue = fullValue.slice(0, startPos) + textAfterCaret;
-        setNativeInputValue(el, expectedFullValue, startPos);
-
-        // Kích hoạt chạy Macro tự động
-        setTimeout(() => {
-          if (window.AteMacroReplayer) {
-            window.AteMacroReplayer.play(matchedMacro);
-          }
-        }, 80);
-      } catch (e) {
-        console.error('Lỗi khởi chạy macro từ phím tắt:', e);
-      } finally {
-        setTimeout(() => { isExpanding = false; }, 120);
-      }
-      return;
-    }
-
-    const matchedSnippet = findMatchingSnippet(textBeforeCaret);
-    if (!matchedSnippet) return;
-
-    isExpanding = true;
-
+  // Thực hiện chèn phím tắt cho Input / Textarea
+  async function performInputExpansion(el, matchedSnippet, rawContent, caretPos, textBeforeCaret, textAfterCaret, fullValue) {
     try {
       const sc = matchedSnippet.shortcut;
       let removeLen = sc.length;
 
-      // Nếu ở chế độ delimiter, trừ thêm 1 ký tự dấu cách / enter
       if (settings.triggerType !== 'immediate') {
         const lastChar = textBeforeCaret.slice(-1);
         if (lastChar === ' ' || lastChar === '\n' || lastChar === '\t') {
@@ -380,25 +607,33 @@
 
       const startPos = caretPos - removeLen;
       const endPos = caretPos;
-      
-      // Tự động loại bỏ cú pháp Markdown (in đậm, in nghiêng, link...) khi chèn vào trường không hỗ trợ (input, textarea)
+
+      // 1. Giải mã các biến hệ thống (ngày giờ, clipboard, url...)
+      const resolvedContent = await resolveSystemVariables(rawContent);
+
+      // 2. Strip Markdown cho trường input/textarea
       const isSingleLine = el.tagName === 'INPUT';
-      const replacement = stripMarkdown(matchedSnippet.content, isSingleLine);
+      let replacement = stripMarkdown(resolvedContent, isSingleLine);
+
+      // 3. Xử lý con trỏ thông minh {{cursor}}
+      let customCaretIndex = -1;
+      const cursorMarker = '{{cursor}}';
+      if (replacement.includes(cursorMarker)) {
+        customCaretIndex = replacement.indexOf(cursorMarker);
+        replacement = replacement.replace(new RegExp(escapeRegExp(cursorMarker), 'g'), '');
+      }
 
       const expectedFullValue = fullValue.slice(0, startPos) + replacement + textAfterCaret;
-      const newCaretPos = startPos + replacement.length;
+      const newCaretPos = customCaretIndex !== -1 ? (startPos + customCaretIndex) : (startPos + replacement.length);
 
-      // Nhận diện xem phần tử có thuộc React / Vue hay framework kiểm soát không
       const isControlledFramework = Boolean(
         el._valueTracker ||
         Object.keys(el).some(k => k.startsWith('__reactFiber') || k.startsWith('__reactProps') || k.startsWith('__vue'))
       );
 
       if (isControlledFramework) {
-        // Đối với React/Vue/Angular: Sử dụng trực tiếp setNativeInputValue để đồng bộ state hoàn hảo
         setNativeInputValue(el, expectedFullValue, newCaretPos);
       } else {
-        // Với form HTML truyền thống: Thử execCommand để giữ Ctrl+Z Undo stack
         el.focus();
         el.setSelectionRange(startPos, endPos);
 
@@ -409,7 +644,6 @@
           execSucceeded = false;
         }
 
-        // Nếu execCommand không thành công hoặc kết quả không đúng, fallback sang native setter
         if (!execSucceeded || el.value !== expectedFullValue) {
           setNativeInputValue(el, expectedFullValue, newCaretPos);
         } else {
@@ -427,49 +661,103 @@
     } finally {
       setTimeout(() => {
         isExpanding = false;
-      }, 50);
+      }, 60);
     }
   }
 
-  // Xử lý mở rộng trong ContentEditable (Gmail, Notion, Quill, Slack,...)
-  function handleContentEditable(rootEl) {
+  // Xử lý mở rộng trong Input và Textarea
+  function handleInputTextarea(el) {
     if (isExpanding) return;
     if (!isUrlAllowed()) return;
+    if (el.readOnly || el.disabled) return;
 
-    const sel = window.getSelection();
-    if (!sel || !sel.isCollapsed || !sel.anchorNode) return;
+    const caretPos = el.selectionEnd;
+    if (caretPos === undefined || caretPos === null) return;
 
-    const node = sel.anchorNode;
-    if (node.nodeType !== Node.TEXT_NODE) return;
+    const fullValue = el.value || '';
+    const textBeforeCaret = fullValue.slice(0, caretPos);
+    const textAfterCaret = fullValue.slice(caretPos);
 
-    const caretPos = sel.anchorOffset;
-    const textBeforeCaret = node.nodeValue.slice(0, caretPos);
+    // 1. Kiểm tra kịch bản Macro
+    const matchedMacro = findMatchingMacro(textBeforeCaret);
+    if (matchedMacro) {
+      isExpanding = true;
+      try {
+        const sc = matchedMacro.shortcut;
+        const removeLen = textBeforeCaret.endsWith(' ') ? sc.length + 1 : sc.length;
+        const startPos = caretPos - removeLen;
+        const expectedFullValue = fullValue.slice(0, startPos) + textAfterCaret;
+        setNativeInputValue(el, expectedFullValue, startPos);
+
+        setTimeout(() => {
+          if (window.AteMacroReplayer) {
+            window.AteMacroReplayer.play(matchedMacro);
+          }
+        }, 80);
+      } catch (e) {
+        console.error('Lỗi khởi chạy macro từ phím tắt:', e);
+      } finally {
+        setTimeout(() => { isExpanding = false; }, 120);
+      }
+      return;
+    }
+
+    // 2. Kiểm tra phím tắt Snippet
     const matchedSnippet = findMatchingSnippet(textBeforeCaret);
-
     if (!matchedSnippet) return;
 
-    isExpanding = true;
-
-    try {
-      const sc = matchedSnippet.shortcut;
-      let removeLen = sc.length;
-      if (settings.triggerType !== 'immediate') {
-        const lastChar = textBeforeCaret.slice(-1);
-        if (lastChar === ' ' || lastChar === '\n' || lastChar === '\t') {
-          removeLen = sc.length + 1;
+    // Kiểm tra có chứa biến điền tương tác không ({{name}}, {{choice:...}})
+    const fillInFields = extractFillInFields(matchedSnippet.content);
+    if (fillInFields.length > 0) {
+      isExpanding = true;
+      showFillInModal(
+        matchedSnippet,
+        fillInFields,
+        async (values) => {
+          let content = matchedSnippet.content;
+          for (const [key, val] of Object.entries(values)) {
+            content = content.split(key).join(val);
+          }
+          await performInputExpansion(el, matchedSnippet, content, caretPos, textBeforeCaret, textAfterCaret, fullValue);
+        },
+        () => {
+          isExpanding = false;
+          el.focus();
         }
-      }
+      );
+      return;
+    }
+
+    isExpanding = true;
+    performInputExpansion(el, matchedSnippet, matchedSnippet.content, caretPos, textBeforeCaret, textAfterCaret, fullValue);
+  }
+
+  // Thực hiện chèn phím tắt cho ContentEditable
+  async function performContentEditableExpansion(rootEl, matchedSnippet, rawContent, node, caretPos, textBeforeCaret, removeLen) {
+    try {
+      rootEl.focus();
+      const sel = window.getSelection();
+      sel.removeAllRanges();
 
       const range = document.createRange();
       range.setStart(node, caretPos - removeLen);
       range.setEnd(node, caretPos);
-
-      sel.removeAllRanges();
       sel.addRange(range);
 
+      // 1. Giải mã các biến hệ thống
+      const resolvedContent = await resolveSystemVariables(rawContent);
+      const hasCursorMarker = resolvedContent.includes('{{cursor}}');
       const isRich = matchedSnippet.renderRichText;
+
       if (isRich) {
-        const htmlContent = renderMarkdownToHtml(matchedSnippet.content);
+        // Chèn marker định vị con trỏ trước khi parse Markdown
+        const CURSOR_MARKER_HTML = '<span id="ate-cursor-marker" style="display:inline;line-height:0;font-size:0;">\u200B</span>';
+        let contentWithMarker = resolvedContent;
+        if (hasCursorMarker) {
+          contentWithMarker = contentWithMarker.replace('{{cursor}}', CURSOR_MARKER_HTML);
+        }
+
+        const htmlContent = renderMarkdownToHtml(contentWithMarker);
         let success = false;
         try {
           success = document.execCommand('insertHTML', false, htmlContent);
@@ -491,20 +779,45 @@
             sel.addRange(range);
           }
         }
+
+        // Định vị lại con trỏ chuột tại vị trí {{cursor}}
+        if (hasCursorMarker) {
+          const marker = rootEl.querySelector('#ate-cursor-marker');
+          if (marker) {
+            const caretRange = document.createRange();
+            caretRange.setStartBefore(marker);
+            caretRange.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(caretRange);
+            marker.remove();
+          }
+        }
       } else {
-        const plainText = stripMarkdown(matchedSnippet.content, false);
+        let plainText = stripMarkdown(resolvedContent, false);
+        let cursorIdx = -1;
+        if (hasCursorMarker) {
+          cursorIdx = plainText.indexOf('{{cursor}}');
+          plainText = plainText.replace('{{cursor}}', '');
+        }
+
         let success = false;
         try {
           success = document.execCommand('insertText', false, plainText);
         } catch (e) {
           success = false;
         }
+
         if (!success) {
           range.deleteContents();
           const textNode = document.createTextNode(plainText);
           range.insertNode(textNode);
-          range.setStartAfter(textNode);
-          range.collapse(true);
+          if (cursorIdx !== -1) {
+            range.setStart(textNode, cursorIdx);
+            range.collapse(true);
+          } else {
+            range.setStartAfter(textNode);
+            range.collapse(true);
+          }
           sel.removeAllRanges();
           sel.addRange(range);
         }
@@ -515,8 +828,60 @@
     } catch (err) {
       console.error('[Auto Text Expander] Lỗi khi chèn contenteditable:', err);
     } finally {
-      isExpanding = false;
+      setTimeout(() => {
+        isExpanding = false;
+      }, 60);
     }
+  }
+
+  // Xử lý mở rộng trong ContentEditable
+  function handleContentEditable(rootEl) {
+    if (isExpanding) return;
+    if (!isUrlAllowed()) return;
+
+    const sel = window.getSelection();
+    if (!sel || !sel.isCollapsed || !sel.anchorNode) return;
+
+    const node = sel.anchorNode;
+    if (node.nodeType !== Node.TEXT_NODE) return;
+
+    const caretPos = sel.anchorOffset;
+    const textBeforeCaret = node.nodeValue.slice(0, caretPos);
+    const matchedSnippet = findMatchingSnippet(textBeforeCaret);
+
+    if (!matchedSnippet) return;
+
+    let removeLen = matchedSnippet.shortcut.length;
+    if (settings.triggerType !== 'immediate') {
+      const lastChar = textBeforeCaret.slice(-1);
+      if (lastChar === ' ' || lastChar === '\n' || lastChar === '\t') {
+        removeLen = matchedSnippet.shortcut.length + 1;
+      }
+    }
+
+    const fillInFields = extractFillInFields(matchedSnippet.content);
+    if (fillInFields.length > 0) {
+      isExpanding = true;
+      showFillInModal(
+        matchedSnippet,
+        fillInFields,
+        async (values) => {
+          let content = matchedSnippet.content;
+          for (const [key, val] of Object.entries(values)) {
+            content = content.split(key).join(val);
+          }
+          await performContentEditableExpansion(rootEl, matchedSnippet, content, node, caretPos, textBeforeCaret, removeLen);
+        },
+        () => {
+          isExpanding = false;
+          rootEl.focus();
+        }
+      );
+      return;
+    }
+
+    isExpanding = true;
+    performContentEditableExpansion(rootEl, matchedSnippet, matchedSnippet.content, node, caretPos, textBeforeCaret, removeLen);
   }
 
   // Điều hướng kiểm tra phần tử đang gõ
