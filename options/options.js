@@ -1269,17 +1269,27 @@
   // MACROS AUTOMATION TAB
   // -------------------------------------------------------------
   function setupMacrosTab() {
+    const macroGuideModal = document.getElementById('macro-guide-modal');
+    const btnCloseMacroGuide = document.getElementById('btn-close-macro-guide-modal');
+    const btnConfirmMacroGuide = document.getElementById('btn-confirm-macro-guide');
+
+    function openMacroGuide() {
+      if (macroGuideModal) macroGuideModal.style.display = 'flex';
+    }
+
+    function closeMacroGuide() {
+      if (macroGuideModal) macroGuideModal.style.display = 'none';
+    }
+
     if (btnCreateMacroGuide) {
-      btnCreateMacroGuide.addEventListener('click', () => {
-        alert(
-          'HƯỚNG DẪN GHI KỊCH BẢN MACRO:\n\n' +
-          '1. Mở trang web bạn muốn thực hiện tự động hóa (ví dụ trang Ticket, CRM, Form).\n' +
-          '2. Bấm vào icon tiện ích Auto Text Expander trên thanh công cụ Chrome.\n' +
-          '3. Nhấn nút màu đỏ "⏺️ Ghi Thao Tác".\n' +
-          '4. Thao tác bình thường trên form: gõ tiêu đề, chọn dropdown, nhập nội dung, bấm submit.\n' +
-          '5. Bấm "⏹️ Dừng & Lưu", đặt tên kịch bản và phím tắt (ví dụ :cbreply hoặc Alt+1).\n\n' +
-          'Sau đó bạn có thể kích hoạt kịch bản mọi lúc bằng phím tắt vừa đặt!'
-        );
+      btnCreateMacroGuide.addEventListener('click', openMacroGuide);
+    }
+
+    if (btnCloseMacroGuide) btnCloseMacroGuide.addEventListener('click', closeMacroGuide);
+    if (btnConfirmMacroGuide) btnConfirmMacroGuide.addEventListener('click', closeMacroGuide);
+    if (macroGuideModal) {
+      macroGuideModal.addEventListener('click', (e) => {
+        if (e.target === macroGuideModal) closeMacroGuide();
       });
     }
 
@@ -1318,16 +1328,19 @@
 
     if (macros.length === 0) {
       macrosListContainer.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 40px 20px; background: var(--bg-surface); border-radius: var(--radius-lg); border: 1px dashed var(--border-subtle);">
-          <div style="display:inline-flex; align-items:center; justify-content:center; width:56px; height:56px; border-radius:14px; background:rgba(99,102,241,0.1); color:var(--primary); margin-bottom:14px;">
+        <div class="macro-empty-state">
+          <div class="macro-empty-icon">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
             </svg>
           </div>
-          <h3 style="color: var(--text-primary); margin-bottom: 6px; font-size:16px;">Chưa có kịch bản tự động hóa nào</h3>
-          <p class="help-text" style="max-width: 480px; margin: 0 auto 16px auto;">
+          <h3>Chưa có kịch bản tự động hóa nào</h3>
+          <p class="macro-empty-text">
             Hãy mở bất kỳ trang web nào và bấm "Ghi Thao Tác" trong Popup tiện ích để tạo kịch bản tự động điền form và gửi đầu tiên của bạn!
           </p>
+          <button type="button" class="btn-glass-primary" onclick="document.getElementById('btn-create-macro-guide')?.click()">
+            Xem Hướng Dẫn Ghi Kịch Bản
+          </button>
         </div>
       `;
       return;
@@ -1340,66 +1353,66 @@
       const stepsCount = macro.steps ? macro.steps.length : 0;
       const stepsHtml = (macro.steps || []).slice(0, 3).map((st, i) => `
         <div class="macro-step-row-summary" title="${escapeHtml(st.label || st.type)}">
-          <strong style="color:var(--primary); font-size:11px;">${i + 1}.</strong>
-          <span>${escapeHtml(st.label || st.type)}</span>
+          <span class="macro-step-row-idx">${i + 1}</span>
+          <span class="macro-step-row-label">${escapeHtml(st.label || st.type)}</span>
         </div>
       `).join('');
 
       card.innerHTML = `
-        <div>
+        <div class="macro-card-inner">
           <div class="macro-card-top">
-            <div>
+            <div class="macro-title-group">
               <div class="macro-card-title">${escapeHtml(macro.name)}</div>
               <div class="macro-badges-row">
                 ${macro.shortcut ? `
                   <span class="macro-badge-trigger" title="Từ khóa kích hoạt">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px; vertical-align:-1px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                       <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-                    </svg>${escapeHtml(macro.shortcut)}
+                    </svg>
+                    <span>${escapeHtml(macro.shortcut)}</span>
                   </span>` : ''}
                 ${macro.hotkey ? `
                   <span class="macro-badge-hotkey" title="Phím nóng bàn phím">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:3px; vertical-align:-1px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
                       <line x1="6" y1="8" x2="6.01" y2="8"></line>
                       <line x1="10" y1="8" x2="10.01" y2="8"></line>
                       <line x1="14" y1="8" x2="14.01" y2="8"></line>
                       <line x1="18" y1="8" x2="18.01" y2="8"></line>
-                    </svg>${escapeHtml(macro.hotkey)}
+                    </svg>
+                    <span>${escapeHtml(macro.hotkey)}</span>
                   </span>` : ''}
-                <span class="badge-tag">${stepsCount} bước thao tác</span>
+                <span class="macro-badge-count">${stepsCount} bước thao tác</span>
               </div>
             </div>
-            <label class="toggle-switch" title="Bật/Tắt kịch bản này">
+            <label class="liquid-switch-label" title="Bật/Tắt kịch bản này">
               <input type="checkbox" class="macro-toggle-checkbox" ${macro.enabled !== false ? 'checked' : ''}>
-              <span class="slider"></span>
+              <span class="liquid-switch-track"></span>
             </label>
           </div>
 
-          <div style="margin-top: 12px;">
+          <div class="macro-steps-preview-wrap">
             <div class="macro-steps-summary">
               ${stepsHtml}
-              ${stepsCount > 3 ? `<div style="font-size:11px; color:var(--text-muted); margin-top:4px;">+ ${stepsCount - 3} thao tác tiếp theo...</div>` : ''}
+              ${stepsCount > 3 ? `<div class="macro-steps-more">+ ${stepsCount - 3} thao tác tiếp theo...</div>` : ''}
             </div>
           </div>
         </div>
 
         <div class="macro-card-actions">
-          <div class="macro-actions-left">
-            <button type="button" class="btn btn-secondary btn-edit-steps" style="padding:6px 12px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-              Sửa các bước
-            </button>
-          </div>
-          <button type="button" class="btn btn-danger-soft btn-delete-macro" style="padding:6px 12px; font-size:12px; display:inline-flex; align-items:center; gap:6px;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button type="button" class="btn-macro-edit btn-edit-steps">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Sửa các bước</span>
+          </button>
+          <button type="button" class="btn-macro-delete btn-delete-macro" title="Xóa kịch bản này">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
-            Xóa
+            <span>Xóa</span>
           </button>
         </div>
       `;
@@ -1448,26 +1461,36 @@
 
       const isInput = st.type === 'input' || st.type === 'quill' || st.type === 'contenteditable';
       const isSelect = st.type === 'select' || st.type === 'custom_select';
+      const isClick = st.type === 'click';
+
+      const typeBadgeClass = isInput ? 'type-input' : (isSelect ? 'type-select' : 'type-click');
+      const typeBadgeLabel = isInput ? 'Điền Văn Bản' : (isSelect ? 'Chọn Dropdown' : 'Nhấp Chuột');
 
       stepRow.innerHTML = `
         <div class="step-edit-left">
           <span class="step-index-badge">${idx + 1}</span>
           <div class="step-info-col">
-            <div style="font-weight:600; font-size:13px; color:var(--text-primary); line-height:1.4;">${escapeHtml(st.label || st.type)}</div>
-            <div class="step-selector-code" title="${escapeHtml(st.selector || '')}">${escapeHtml(st.selector || '')}</div>
+            <div class="step-title-row">
+              <span class="step-type-pill ${typeBadgeClass}">${typeBadgeLabel}</span>
+              <strong class="step-title-text">${escapeHtml(st.label || st.type)}</strong>
+            </div>
+            <div class="step-selector-code" title="${escapeHtml(st.selector || '')}">
+              <code>${escapeHtml(st.selector || '')}</code>
+            </div>
             ${isInput || isSelect ? `
-              <div style="margin-top:6px;">
+              <div class="step-val-row">
+                <span class="step-val-label">${isSelect ? 'Giá trị chọn:' : 'Văn bản điền:'}</span>
                 <input type="text" class="step-val-input" value="${escapeHtml(st.value || st.optionText || '')}" placeholder="${isSelect ? 'Lựa chọn cần chọn...' : 'Giá trị điền...'}">
               </div>
             ` : ''}
           </div>
         </div>
-        <button type="button" class="btn btn-danger-soft btn-delete-single-step" title="Xóa bước này" style="padding:5px 9px; font-size:11.5px; display:inline-flex; align-items:center; gap:4px; flex-shrink:0;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button type="button" class="btn-step-delete btn-delete-single-step" title="Xóa bước này">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="3 6 5 6 21 6"></polyline>
             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
           </svg>
-          Xóa
+          <span>Xóa</span>
         </button>
       `;
 

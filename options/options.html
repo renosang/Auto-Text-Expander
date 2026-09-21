@@ -7,7 +7,7 @@
   <title>Auto Text Expander Pro - Liquid Glass Studio</title>
   <!-- Tailwind CSS & Liquid Glass Stylesheet -->
   <link rel="stylesheet" href="tailwind.css?v=7.1">
-  <link rel="stylesheet" href="options.css?v=7.4">
+  <link rel="stylesheet" href="options.css?v=7.5">
 </head>
 
 <body>
@@ -45,7 +45,8 @@
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-                <input type="text" id="search-input" placeholder="Tìm kiếm phím tắt, mô tả hoặc #tag..." autocomplete="off">
+                <input type="text" id="search-input" placeholder="Tìm kiếm phím tắt, mô tả hoặc #tag..."
+                  autocomplete="off">
               </div>
 
               <!-- Horizontal Category Chips (Uses .btn-cat-pill!) -->
@@ -274,7 +275,7 @@
           <div class="glass-scroll-container">
             <header class="glass-view-header">
               <div>
-                <h2>Phòng Thử Nghiệm Phím Tắt</h2>
+                <h2>Khu Vực Thử Nghiệm</h2>
                 <p>Kiểm tra khả năng mở rộng trên trường văn bản thuần, trình soạn thảo Rich Text và Dropdown tự động
                   hóa.</p>
               </div>
@@ -382,9 +383,12 @@
 
             <!-- Macro Step Modal -->
             <div id="macro-step-modal" class="glass-modal-overlay" style="display: none;">
-              <div class="glass-modal-window">
+              <div class="glass-modal-window" style="max-width: 680px;">
                 <div class="modal-head">
-                  <h3 id="step-modal-title">Chi Tiết Các Bước Kịch Bản</h3>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">⚙️</span>
+                    <h3 id="step-modal-title" style="margin:0; font-size:14px; font-weight:700;">Chi Tiết Các Bước Kịch Bản</h3>
+                  </div>
                   <button type="button" class="btn-modal-close" id="btn-close-step-modal">✕</button>
                 </div>
                 <div class="modal-body">
@@ -393,6 +397,52 @@
                 <div class="modal-foot">
                   <button type="button" class="btn-glass-ghost" id="btn-cancel-step-modal">Hủy Bỏ</button>
                   <button type="button" class="btn-glass-primary" id="btn-save-step-modal">Lưu Cấu Hình</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Macro Guide Modal (Liquid Glass) -->
+            <div id="macro-guide-modal" class="glass-modal-overlay" style="display: none;">
+              <div class="glass-modal-window" style="max-width: 580px;">
+                <div class="modal-head">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">⚡</span>
+                    <h3 style="margin: 0; font-size: 14.5px; font-weight: 700; color: var(--text-primary);">Hướng Dẫn Ghi Kịch Bản Macro Tự Động</h3>
+                  </div>
+                  <button type="button" class="btn-modal-close" id="btn-close-macro-guide-modal">✕</button>
+                </div>
+                <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px; padding: 18px;">
+                  <div class="macro-guide-step-card">
+                    <div class="guide-step-num">1</div>
+                    <div class="guide-step-content">
+                      <strong>Mở trang web bạn muốn tự động hóa</strong>
+                      <p>Truy cập vào trang web thực tế bạn muốn thực hiện chuỗi thao tác (ví dụ: trang Ticket CRM, form đăng ký, báo cáo hàng ngày...).</p>
+                    </div>
+                  </div>
+                  <div class="macro-guide-step-card">
+                    <div class="guide-step-num">2</div>
+                    <div class="guide-step-content">
+                      <strong>Bật tính năng Ghi Thao Tác</strong>
+                      <p>Nhấp vào biểu tượng tiện ích <strong>Auto Text Expander Pro</strong> trên thanh công cụ Chrome, sau đó nhấn nút <span class="guide-badge-rec">⏺ Ghi Thao Tác</span>.</p>
+                    </div>
+                  </div>
+                  <div class="macro-guide-step-card">
+                    <div class="guide-step-num">3</div>
+                    <div class="guide-step-content">
+                      <strong>Thao tác bình thường trên trang web</strong>
+                      <p>Nhập văn bản vào ô input, chọn các mục dropdown, nhấp các nút cần bấm. Tiện ích sẽ ghi nhận chính xác từng bước một.</p>
+                    </div>
+                  </div>
+                  <div class="macro-guide-step-card">
+                    <div class="guide-step-num">4</div>
+                    <div class="guide-step-content">
+                      <strong>Dừng & Lưu kịch bản</strong>
+                      <p>Nhấn nút <span class="guide-badge-stop">⏹ Dừng & Lưu</span> trên thanh điều khiển nổi, đặt tên kịch bản kèm từ khóa phím tắt (ví dụ: <code>:cskh_reply</code> hoặc <code>Alt+1</code>).</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-foot" style="justify-content: flex-end;">
+                  <button type="button" class="btn-glass-primary" id="btn-confirm-macro-guide">Đã Hiểu & Bắt Đầu</button>
                 </div>
               </div>
             </div>
@@ -791,7 +841,7 @@
   <!-- Markdown & HTML Sanitizer Libraries -->
   <script src="../lib/marked.min.js"></script>
   <script src="../lib/purify.min.js"></script>
-  <script src="options.js?v=7.4"></script>
+  <script src="options.js?v=7.5"></script>
 </body>
 
 </html>
