@@ -7,7 +7,7 @@
   <title>Auto Text Expander Pro - Liquid Glass Studio</title>
   <!-- Tailwind CSS & Liquid Glass Stylesheet -->
   <link rel="stylesheet" href="tailwind.css?v=7.1">
-  <link rel="stylesheet" href="options.css?v=7.5">
+  <link rel="stylesheet" href="options.css?v=7.7">
 </head>
 
 <body>
@@ -570,6 +570,27 @@
                       click để chọn</p>
                     <span id="file-chosen-name" class="dropzone-tag"></span>
                   </div>
+
+                  <div class="form-stack" style="margin-top: 14px;">
+                    <label>Chế Độ Nhập Dữ Liệu:</label>
+                    <div class="glass-radio-tiles">
+                      <label class="radio-tile">
+                        <input type="radio" name="importMode" value="merge" id="import-mode-merge" checked>
+                        <div>
+                          <strong>Gộp Dữ Liệu (Khuyên dùng)</strong>
+                          <p>Bổ sung phím tắt mới, cập nhật mục trùng nhau và giữ nguyên dữ liệu hiện có.</p>
+                        </div>
+                      </label>
+                      <label class="radio-tile">
+                        <input type="radio" name="importMode" value="overwrite" id="import-mode-overwrite">
+                        <div>
+                          <strong>Ghi Đè Hoàn Toàn</strong>
+                          <p>Xóa và thay thế toàn bộ danh sách phím tắt hiện tại bằng dữ liệu trong tệp.</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
                   <div style="display:flex;justify-content:flex-end;margin-top:14px;">
                     <button type="button" class="btn-glass-primary" id="btn-process-import">Tiến Hành Nhập Dữ
                       Liệu</button>
@@ -836,12 +857,44 @@
         </div>
       </div>
     </div>
+    <!-- MODAL XÁC NHẬN XÓA (LIQUID GLASS CONFIRM MODAL) -->
+    <div id="confirm-delete-modal" class="glass-modal-overlay" style="display: none;">
+      <div class="glass-modal-window" style="max-width: 440px;">
+        <div class="modal-head" style="border-bottom: 1px solid rgba(244, 63, 94, 0.15);">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div style="width: 28px; height: 28px; border-radius: 8px; background: rgba(244, 63, 94, 0.12); color: var(--accent-rose); display: flex; align-items: center; justify-content: center;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </div>
+            <h3 id="confirm-delete-title" style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">Xác Nhận Xóa</h3>
+          </div>
+          <button type="button" class="btn-modal-close" id="btn-close-confirm-delete">✕</button>
+        </div>
+        <div class="modal-body" style="padding: 20px 22px;">
+          <p id="confirm-delete-message" style="font-size: 13px; line-height: 1.5; color: var(--text-secondary); margin: 0;">
+            Bạn có chắc chắn muốn xóa mục này không? Hành động này không thể hoàn tác.
+          </p>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn-glass-ghost" id="btn-cancel-confirm-delete">Hủy Bỏ</button>
+          <button type="button" class="btn-macro-delete" id="btn-execute-confirm-delete" style="padding: 7px 16px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Xóa Vĩnh Viễn</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Markdown & HTML Sanitizer Libraries -->
   <script src="../lib/marked.min.js"></script>
   <script src="../lib/purify.min.js"></script>
-  <script src="options.js?v=7.5"></script>
+  <script src="options.js?v=7.7"></script>
 </body>
 
 </html>

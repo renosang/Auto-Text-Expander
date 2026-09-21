@@ -2822,7 +2822,24 @@ body {
 
 .inline-add-row {
   display: flex;
+  align-items: center;
   gap: 8px;
+  width: 100%;
+}
+
+.inline-add-row .glass-input-field,
+.inline-add-row #input-new-rule {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  padding: 8px 11px;
+}
+
+.inline-add-row .btn-glass-primary,
+.inline-add-row #btn-add-rule {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 8px 14px;
 }
 
 .rules-tags-list {

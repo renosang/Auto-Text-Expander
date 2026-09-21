@@ -720,6 +720,40 @@
     renderSnippets();
   }
 
+  // CONFIRM DELETE MODAL (LIQUID GLASS)
+  function openConfirmDeleteModal({ title, message, onConfirm }) {
+    const modal = document.getElementById('confirm-delete-modal');
+    const titleEl = document.getElementById('confirm-delete-title');
+    const msgEl = document.getElementById('confirm-delete-message');
+    const btnExecute = document.getElementById('btn-execute-confirm-delete');
+    const btnCancel = document.getElementById('btn-cancel-confirm-delete');
+    const btnClose = document.getElementById('btn-close-confirm-delete');
+
+    if (!modal) return;
+    if (titleEl && title) titleEl.textContent = title;
+    if (msgEl && message) msgEl.innerHTML = message;
+
+    function closeModal() {
+      modal.style.display = 'none';
+      if (btnExecute) btnExecute.onclick = null;
+    }
+
+    if (btnCancel) btnCancel.onclick = closeModal;
+    if (btnClose) btnClose.onclick = closeModal;
+    modal.onclick = (e) => {
+      if (e.target === modal) closeModal();
+    };
+
+    if (btnExecute) {
+      btnExecute.onclick = async () => {
+        closeModal();
+        if (onConfirm) await onConfirm();
+      };
+    }
+
+    modal.style.display = 'flex';
+  }
+
   function setupEditor() {
     btnCreateNew.addEventListener('click', () => {
       resetEditor();
@@ -730,18 +764,22 @@
       resetEditor();
     });
 
-    btnDeleteSnippet.addEventListener('click', async () => {
+    btnDeleteSnippet.addEventListener('click', () => {
       if (!currentEditingId) return;
       const target = snippets.find(s => s.id === currentEditingId);
       if (!target) return;
 
-      if (confirm(`Bạn có chắc chắn muốn xóa phím tắt "${target.shortcut}"?`)) {
-        snippets = snippets.filter(s => s.id !== currentEditingId);
-        await saveData();
-        resetEditor();
-        renderSnippets();
-        showToast(`Đã xóa phím tắt "${target.shortcut}"`, 'success');
-      }
+      openConfirmDeleteModal({
+        title: 'Xác Nhận Xóa Phím Tắt',
+        message: `Bạn có chắc chắn muốn xóa phím tắt <strong>${escapeHtml(target.shortcut)}</strong> (${escapeHtml(target.label || 'Không có nhãn')})?<br><span style="color:var(--accent-rose);font-size:12px;display:inline-block;margin-top:6px;">⚠️ Thao tác này sẽ xóa vĩnh viễn phím tắt khỏi hệ thống và không thể hoàn tác.</span>`,
+        onConfirm: async () => {
+          snippets = snippets.filter(s => s.id !== currentEditingId);
+          await saveData();
+          resetEditor();
+          renderSnippets();
+          showToast(`Đã xóa phím tắt "${target.shortcut}"`, 'success');
+        }
+      });
     });
 
     btnSaveSnippet.addEventListener('click', async () => {
@@ -1431,13 +1469,17 @@
       });
 
       // Delete macro
-      card.querySelector('.btn-delete-macro').addEventListener('click', async () => {
-        if (confirm(`Bạn có chắc muốn xóa kịch bản "${macro.name}"?`)) {
-          macros = macros.filter(m => m.id !== macro.id);
-          await saveData();
-          renderMacrosList();
-          showToast(`Đã xóa kịch bản "${macro.name}"`, 'success');
-        }
+      card.querySelector('.btn-delete-macro').addEventListener('click', () => {
+        openConfirmDeleteModal({
+          title: 'Xác Nhận Xóa Kịch Bản',
+          message: `Bạn có chắc muốn xóa kịch bản <strong>${escapeHtml(macro.name)}</strong>?<br><span style="color:var(--accent-rose);font-size:12px;display:inline-block;margin-top:6px;">⚠️ Toàn bộ ${macro.steps ? macro.steps.length : 0} bước thao tác đã ghi sẽ bị xóa vĩnh viễn.</span>`,
+          onConfirm: async () => {
+            macros = macros.filter(m => m.id !== macro.id);
+            await saveData();
+            renderMacrosList();
+            showToast(`Đã xóa kịch bản "${macro.name}"`, 'success');
+          }
+        });
       });
 
       macrosListContainer.appendChild(card);
@@ -1635,10 +1677,11 @@
     // Export JSON
     btnExportJson.addEventListener('click', () => {
       const exportData = {
-        version: '1.0.0',
+        version: '7.6',
         exportedAt: new Date().toISOString(),
         settings,
         snippets,
+        categories,
         macros
       };
       downloadFile(JSON.stringify(exportData, null, 2), 'auto-text-expander-backup.json', 'application/json');
@@ -1709,12 +1752,33 @@
   }
 
   async function processImport() {
+    // Tự động đọc file trực tiếp nếu importedFileData chưa sẵn sàng
+    if ((!importedFileData || !importedFileData.content) && fileImport && fileImport.files && fileImport.files.length > 0) {
+      const file = fileImport.files[0];
+      const name = file.name;
+      const isJson = name.endsWith('.json');
+      const isCsv = name.endsWith('.csv');
+      if (isJson || isCsv) {
+        try {
+          const text = await file.text();
+          importedFileData = {
+            name,
+            type: isJson ? 'json' : 'csv',
+            content: text
+          };
+        } catch (e) {
+          console.warn('Lỗi đọc file trực tiếp:', e);
+        }
+      }
+    }
+
     if (!importedFileData || !importedFileData.content) {
-      showToast('Vui lòng chọn file hợp lệ để nhập!', 'error');
+      showToast('Vui lòng chọn tệp .json hoặc .csv để nhập dữ liệu!', 'error');
       return;
     }
 
-    const mode = document.querySelector('input[name="importMode"]:checked').value;
+    const importModeRadio = document.querySelector('input[name="importMode"]:checked');
+    const mode = importModeRadio ? importModeRadio.value : 'merge';
     let newSnippets = [];
 
     try {
@@ -1726,6 +1790,13 @@
           newSnippets = parsed.snippets;
           if (parsed.settings) {
             settings = { ...settings, ...parsed.settings };
+          }
+          if (parsed.categories && Array.isArray(parsed.categories)) {
+            for (const cat of parsed.categories) {
+              if (!categories.some(c => c.id === cat.id)) {
+                categories.push(cat);
+              }
+            }
           }
           if (parsed.macros && Array.isArray(parsed.macros)) {
             if (mode === 'overwrite') {
@@ -1742,7 +1813,7 @@
             }
           }
         } else {
-          throw new Error('Cấu trúc file JSON không hợp lệ');
+          throw new Error('Cấu trúc tệp JSON không hợp lệ');
         }
       } else {
         // Parse CSV
@@ -1750,7 +1821,7 @@
       }
 
       if (!newSnippets || newSnippets.length === 0) {
-        showToast('Không tìm thấy phím tắt hợp lệ trong file', 'error');
+        showToast('Không tìm thấy phím tắt hợp lệ trong tệp', 'error');
         return;
       }
 
@@ -1772,8 +1843,10 @@
       }
 
       await saveData();
+      renderCategories();
       renderSnippets();
       renderUrlRules();
+      renderMacrosList();
       resetEditor();
 
       showToast(`Nhập dữ liệu thành công (${newSnippets.length} phím tắt)!`, 'success');
