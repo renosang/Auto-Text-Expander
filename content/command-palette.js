@@ -16,6 +16,35 @@
   let previewContainerEl = null;
   let tabBadges = { all: null, snippets: null, macros: null };
 
+  // Biểu tượng Vector SVG sắc nét chuẩn Apple Liquid Glass
+  const ICON_SNIPPET = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>`;
+  const ICON_MACRO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`;
+  const ICON_SEARCH = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+
+  // Bảng ánh xạ nhãn danh mục chuẩn hóa đồng bộ giao diện
+  const CATEGORY_LABEL_MAP = {
+    general: 'Chung',
+    work: 'Công việc',
+    support: 'CSKH',
+    personal: 'Cá nhân',
+    dev: 'Lập trình'
+  };
+
+  function getCategoryLabel(catId) {
+    if (!catId) return 'Chung';
+    const key = String(catId).toLowerCase().trim();
+    if (CATEGORY_LABEL_MAP[key]) return CATEGORY_LABEL_MAP[key];
+    const bridge = window.AteContentBridge;
+    if (bridge && bridge.getSettings) {
+      const s = bridge.getSettings();
+      if (s && Array.isArray(s.categories)) {
+        const found = s.categories.find(c => String(c.id).toLowerCase() === key || String(c.label).toLowerCase() === key);
+        if (found && found.label) return found.label;
+      }
+    }
+    return catId;
+  }
+
   // Đồng bộ theme với thiết lập trong popup / storage
   function syncTheme() {
     try {
@@ -304,7 +333,7 @@
     if (filteredItems.length === 0) {
       listContainerEl.innerHTML = `
         <div class="ate-palette-empty">
-          <div class="ate-empty-icon">🔍</div>
+          <div class="ate-empty-icon">${ICON_SEARCH}</div>
           <p class="ate-empty-title">Không tìm thấy kết quả phù hợp</p>
           <p class="ate-empty-desc">Thử tìm theo từ khóa khác hoặc chuyển sang tab bộ lọc Tất Cả.</p>
         </div>
@@ -316,19 +345,20 @@
     filteredItems.forEach((item, index) => {
       const isSelected = index === selectedIndex;
       const isMacro = item.type === 'macro';
-      const icon = isMacro ? '⚡' : '📄';
+      const iconSvg = isMacro ? ICON_MACRO : ICON_SNIPPET;
 
       let metaBadge = '';
       if (isMacro) {
         metaBadge = `<span class="ate-item-pill macro-pill">Macro • ${item.stepsCount} bước</span>`;
       } else if (item.category) {
-        metaBadge = `<span class="ate-item-pill cat-pill">${escapeHtml(item.category)}</span>`;
+        const catLabel = getCategoryLabel(item.category);
+        metaBadge = `<span class="ate-item-pill cat-pill">${escapeHtml(catLabel)}</span>`;
       }
 
       html += `
         <div class="ate-palette-item ${isSelected ? 'ate-selected' : ''}" data-index="${index}">
           <div class="ate-item-left-icon ${isMacro ? 'macro-icon' : ''}">
-            <span>${icon}</span>
+            ${iconSvg}
           </div>
           <div class="ate-item-main-content">
             <div class="ate-item-row-top">
@@ -427,8 +457,8 @@
       previewContainerEl.innerHTML = `
         <div class="ate-preview-header">
           <div class="ate-preview-title-wrap">
-            <span class="ate-preview-icon-box macro">⚡</span>
-            <div>
+            <span class="ate-preview-icon-box macro">${ICON_MACRO}</span>
+            <div class="ate-preview-title-info">
               <h4 class="ate-preview-title">${escapeHtml(macro.name || 'Kịch bản Macro')}</h4>
               <div class="ate-preview-meta-row">
                 <code class="ate-preview-shortcut">${escapeHtml(macro.shortcut || 'Không có phím tắt')}</code>
@@ -443,7 +473,7 @@
           <div class="ate-preview-section-title">URL Áp Dụng:</div>
           <div class="ate-preview-url-box">${escapeHtml(macro.urlPattern || 'Mọi trang web (*)')}</div>
 
-          <div class="ate-preview-section-title" style="margin-top: 14px;">Quy Trình Tự Động Hóa:</div>
+          <div class="ate-preview-section-title" style="margin-top: 10px;">Quy Trình Tự Động Hóa:</div>
           <div class="ate-macro-steps-list">
             ${stepsHtml}
           </div>
@@ -479,17 +509,18 @@
       renderedHtml = `<pre class="ate-preview-plain">${escapeHtml(previewContent)}</pre>`;
     }
 
-    const tagsHtml = (snippet.tags || []).map(t => `<span class="ate-preview-tag">🏷️ ${escapeHtml(t)}</span>`).join('');
+    const tagsHtml = (snippet.tags || []).map(t => `<span class="ate-preview-tag">#${escapeHtml(t)}</span>`).join('');
+    const categoryLabel = getCategoryLabel(snippet.category);
 
     previewContainerEl.innerHTML = `
       <div class="ate-preview-header">
         <div class="ate-preview-title-wrap">
-          <span class="ate-preview-icon-box snippet">📄</span>
-          <div>
+          <span class="ate-preview-icon-box snippet">${ICON_SNIPPET}</span>
+          <div class="ate-preview-title-info">
             <h4 class="ate-preview-title">${escapeHtml(snippet.label || snippet.shortcut)}</h4>
             <div class="ate-preview-meta-row">
               <code class="ate-preview-shortcut">${escapeHtml(snippet.shortcut)}</code>
-              <span class="ate-preview-badge">${escapeHtml(snippet.category || 'Chung')}</span>
+              <span class="ate-preview-badge">${escapeHtml(categoryLabel)}</span>
               ${snippet.renderRichText ? '<span class="ate-preview-badge rich">Rich Text</span>' : ''}
             </div>
           </div>
