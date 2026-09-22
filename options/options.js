@@ -346,7 +346,16 @@
 
         item.classList.add('active');
         const activePane = document.getElementById(`tab-${targetTab}`);
-        if (activePane) activePane.classList.add('active');
+        if (activePane) {
+          activePane.classList.add('active');
+          const scrollContainer = activePane.querySelector('.glass-scroll-container');
+          if (scrollContainer) scrollContainer.scrollTop = 0;
+          activePane.scrollTop = 0;
+        }
+
+        const workspace = document.querySelector('.liquid-workspace');
+        if (workspace) workspace.scrollTop = 0;
+        window.scrollTo(0, 0);
 
         if (targetTab === 'analytics') {
           renderAnalytics();
@@ -359,7 +368,12 @@
     if (initialHash) {
       const targetNav = document.querySelector(`.nav-item[data-tab="${initialHash}"]`);
       if (targetNav) {
-        setTimeout(() => targetNav.click(), 50);
+        setTimeout(() => {
+          targetNav.click();
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }, 50);
       }
     }
   }
@@ -2474,7 +2488,14 @@
 
     // 1. Cập nhật 4 thẻ KPI
     if (kpiExpansions) kpiExpansions.textContent = (stats.totalExpansions || 0).toLocaleString();
-    if (kpiExpansionsSub) kpiExpansionsSub.innerHTML = `<span>⚡ ${todayData.expansions || 0} lượt hôm nay</span>`;
+    if (kpiExpansionsSub) {
+      kpiExpansionsSub.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 12px; height: 12px; display: inline-block; vertical-align: -1px; margin-right: 4px; color: #6366F1;">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+        <span>${todayData.expansions || 0} lượt hôm nay</span>
+      `;
+    }
 
     if (kpiCharsSaved) kpiCharsSaved.textContent = (stats.totalCharsSaved || 0).toLocaleString();
     const approxWords = Math.round((stats.totalCharsSaved || 0) / 5);
@@ -2486,7 +2507,15 @@
     if (kpiTimeSub) kpiTimeSub.innerHTML = `<span>Ước tính theo tốc độ ${wpm} WPM</span>`;
 
     if (kpiMacrosRun) kpiMacrosRun.textContent = (stats.totalMacrosRun || 0).toLocaleString();
-    if (kpiMacrosSub) kpiMacrosSub.innerHTML = `<span>🚀 ${todayData.macrosRun || 0} lượt hôm nay</span>`;
+    if (kpiMacrosSub) {
+      kpiMacrosSub.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 12px; height: 12px; display: inline-block; vertical-align: -1px; margin-right: 4px; color: #D97706;">
+          <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path>
+          <path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path>
+        </svg>
+        <span>${todayData.macrosRun || 0} lượt hôm nay</span>
+      `;
+    }
 
     // 2. Vẽ biểu đồ hoạt động 14 ngày (Daily Activity Chart)
     if (dailyChartBars) {
@@ -2531,8 +2560,18 @@
         col.innerHTML = `
           <div class="daily-chart-tooltip">
             <strong>${day.dayDate}${day.isToday ? ' (Hôm nay)' : ''}</strong><br>
-            ⚡ ${day.expansions.toLocaleString()} lượt mở rộng<br>
-            ✍️ ${day.charsSaved.toLocaleString()} ký tự tiết kiệm
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 3px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width: 10px; height: 10px; color: #38BDF8;">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+              </svg>
+              <span>${day.expansions.toLocaleString()} lượt mở rộng</span>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 10px; height: 10px; color: #34D399;">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              </svg>
+              <span>${day.charsSaved.toLocaleString()} ký tự tiết kiệm</span>
+            </div>
           </div>
           <div class="daily-chart-bar ${day.isToday ? 'current-day' : ''}" style="height: ${pct}%;"></div>
           <span class="daily-chart-day-label">${day.isToday ? 'Hôm nay' : day.dayDate}</span>
@@ -2556,7 +2595,11 @@
       if (sortedSnippets.length === 0) {
         topSnippetsList.innerHTML = `
           <div style="padding: 34px 16px; text-align: center; color: var(--text-muted); font-size: 12px;">
-            <span style="font-size: 28px; display: block; margin-bottom: 8px;">📊</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 32px; height: 32px; display: block; margin: 0 auto 10px; color: var(--primary); opacity: 0.6;">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
             Chưa có phím tắt nào được kích hoạt.<br>
             Hãy thử gõ phím tắt trên bất kỳ trang web nào để bắt đầu đo lường hiệu suất!
           </div>

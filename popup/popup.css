@@ -610,7 +610,27 @@ html, body {
 }
 
 .mini-stat-icon {
-  font-size: 14px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.mini-stat-icon svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  display: block;
+}
+
+.macro-icon-bolt svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  display: block;
 }
 
 .mini-stat-col {
