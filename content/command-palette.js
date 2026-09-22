@@ -8,12 +8,41 @@
   let filteredItems = [];
   let selectedIndex = 0;
   let lastActiveElement = null;
+  let currentTheme = 'dark'; // 'dark' | 'light'
 
   let overlayEl = null;
   let inputEl = null;
   let listContainerEl = null;
   let previewContainerEl = null;
   let tabBadges = { all: null, snippets: null, macros: null };
+
+  // Đồng bộ theme với thiết lập trong popup / storage
+  function syncTheme() {
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(['settings'], (res) => {
+          if (res && res.settings && res.settings.theme) {
+            applyPaletteTheme(res.settings.theme);
+          }
+        });
+      }
+    } catch (e) {}
+
+    const bridge = window.AteContentBridge;
+    if (bridge && bridge.getSettings) {
+      const s = bridge.getSettings();
+      if (s && s.theme) {
+        applyPaletteTheme(s.theme);
+      }
+    }
+  }
+
+  function applyPaletteTheme(theme) {
+    currentTheme = theme === 'light' ? 'light' : 'dark';
+    if (overlayEl) {
+      overlayEl.setAttribute('data-theme', currentTheme);
+    }
+  }
 
   // Theo dõi phần tử được focus cuối cùng trên trang web
   document.addEventListener('focusin', (e) => {
@@ -45,6 +74,7 @@
 
     overlayEl = document.createElement('div');
     overlayEl.className = 'ate-palette-overlay';
+    overlayEl.setAttribute('data-theme', currentTheme);
     overlayEl.style.display = 'none';
 
     overlayEl.innerHTML = `
@@ -568,9 +598,11 @@
   }
 
   function openPalette() {
+    syncTheme();
     createPaletteDOM();
     if (!overlayEl) return;
 
+    overlayEl.setAttribute('data-theme', currentTheme);
     isOpen = true;
     query = '';
     selectedIndex = 0;
@@ -633,10 +665,14 @@
   }
 
   syncShortcut();
+  syncTheme();
 
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
     chrome.storage.onChanged.addListener((changes, namespace) => {
       if (namespace === 'local' && changes.settings && changes.settings.newValue) {
+        if (changes.settings.newValue.theme) {
+          applyPaletteTheme(changes.settings.newValue.theme);
+        }
         if (changes.settings.newValue.paletteShortcut) {
           currentShortcut = changes.settings.newValue.paletteShortcut;
         }
