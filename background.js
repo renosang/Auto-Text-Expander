@@ -75,9 +75,20 @@ const DEFAULT_SETTINGS = {
   paletteShortcut: "Ctrl+Shift+K"
 };
 
+const DEFAULT_STATS = {
+  totalExpansions: 0,
+  totalCharsSaved: 0,
+  totalMacrosRun: 0,
+  wpm: 40,
+  snippetUsage: {},
+  dailyHistory: {},
+  firstUsedDate: new Date().toISOString().slice(0, 10),
+  lastUsedDate: new Date().toISOString().slice(0, 10)
+};
+
 chrome.runtime.onInstalled.addListener(async (details) => {
   // Khởi tạo dữ liệu mẫu nếu chưa có
-  const data = await chrome.storage.local.get(["snippets", "settings"]);
+  const data = await chrome.storage.local.get(["snippets", "settings", "stats"]);
   const updates = {};
 
   if (!data.snippets || !Array.isArray(data.snippets)) {
@@ -88,6 +99,11 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   } else {
     // Merge với defaults đề phòng thiếu trường
     updates.settings = { ...DEFAULT_SETTINGS, ...data.settings };
+  }
+  if (!data.stats) {
+    updates.stats = { ...DEFAULT_STATS, firstUsedDate: new Date().toISOString().slice(0, 10) };
+  } else {
+    updates.stats = { ...DEFAULT_STATS, ...data.stats };
   }
 
   if (Object.keys(updates).length > 0) {
@@ -128,3 +144,105 @@ chrome.commands.onCommand.addListener(async (command) => {
     }
   }
 });
+
+// Lắng nghe ghi nhận số liệu Thống Kê Năng Suất (Productivity Analytics)
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (!message || !message.action) return false;
+
+  if (message.action === "RECORD_EXPANSION") {
+    handleRecordExpansion(message).then(() => {
+      sendResponse({ success: true });
+    }).catch(err => {
+      sendResponse({ success: false, error: err.message });
+    });
+    return true; // async response
+  }
+
+  if (message.action === "RECORD_MACRO_RUN") {
+    handleRecordMacroRun(message).then(() => {
+      sendResponse({ success: true });
+    }).catch(err => {
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+
+  if (message.action === "RESET_STATS") {
+    handleResetStats().then(newStats => {
+      sendResponse({ success: true, stats: newStats });
+    }).catch(err => {
+      sendResponse({ success: false, error: err.message });
+    });
+    return true;
+  }
+});
+
+async function handleRecordExpansion({ snippetId, shortcut, charsSaved }) {
+  try {
+    const data = await chrome.storage.local.get(["stats"]);
+    const stats = data.stats || { ...DEFAULT_STATS };
+
+    const today = new Date().toISOString().slice(0, 10);
+    const addedChars = Math.max(0, parseInt(charsSaved, 10) || 0);
+
+    stats.totalExpansions = (stats.totalExpansions || 0) + 1;
+    stats.totalCharsSaved = (stats.totalCharsSaved || 0) + addedChars;
+    stats.lastUsedDate = today;
+    if (!stats.firstUsedDate) stats.firstUsedDate = today;
+
+    // Cập nhật lịch sử theo ngày
+    if (!stats.dailyHistory) stats.dailyHistory = {};
+    if (!stats.dailyHistory[today]) {
+      stats.dailyHistory[today] = { expansions: 0, charsSaved: 0, macrosRun: 0 };
+    }
+    stats.dailyHistory[today].expansions = (stats.dailyHistory[today].expansions || 0) + 1;
+    stats.dailyHistory[today].charsSaved = (stats.dailyHistory[today].charsSaved || 0) + addedChars;
+
+    // Cập nhật lượt dùng của phím tắt cụ thể
+    if (snippetId) {
+      if (!stats.snippetUsage) stats.snippetUsage = {};
+      stats.snippetUsage[snippetId] = (stats.snippetUsage[snippetId] || 0) + 1;
+    }
+
+    await chrome.storage.local.set({ stats });
+  } catch (e) {
+    console.warn("[Analytics] Lỗi ghi nhận mở rộng:", e);
+  }
+}
+
+async function handleRecordMacroRun({ macroId, macroName, stepsCount }) {
+  try {
+    const data = await chrome.storage.local.get(["stats"]);
+    const stats = data.stats || { ...DEFAULT_STATS };
+
+    const today = new Date().toISOString().slice(0, 10);
+    stats.totalMacrosRun = (stats.totalMacrosRun || 0) + 1;
+    stats.lastUsedDate = today;
+
+    if (!stats.dailyHistory) stats.dailyHistory = {};
+    if (!stats.dailyHistory[today]) {
+      stats.dailyHistory[today] = { expansions: 0, charsSaved: 0, macrosRun: 0 };
+    }
+    stats.dailyHistory[today].macrosRun = (stats.dailyHistory[today].macrosRun || 0) + 1;
+
+    await chrome.storage.local.set({ stats });
+  } catch (e) {
+    console.warn("[Analytics] Lỗi ghi nhận macro:", e);
+  }
+}
+
+async function handleResetStats() {
+  const today = new Date().toISOString().slice(0, 10);
+  const newStats = {
+    totalExpansions: 0,
+    totalCharsSaved: 0,
+    totalMacrosRun: 0,
+    wpm: 40,
+    snippetUsage: {},
+    dailyHistory: {},
+    firstUsedDate: today,
+    lastUsedDate: today
+  };
+  await chrome.storage.local.set({ stats: newStats });
+  return newStats;
+}

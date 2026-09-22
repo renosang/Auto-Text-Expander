@@ -582,6 +582,61 @@ html, body {
   white-space: nowrap;
 }
 
+/* Mini Productivity Stats Bar */
+.popup-mini-stats {
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border-subtle);
+  transition: var(--transition-smooth);
+}
+
+.popup-mini-stats:hover {
+  border-color: var(--glass-border-active);
+  transform: translateY(-1px);
+  background: var(--glass-surface-hover);
+  box-shadow: 0 4px 14px var(--primary-glow);
+}
+
+.mini-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  justify-content: center;
+}
+
+.mini-stat-icon {
+  font-size: 14px;
+}
+
+.mini-stat-col {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.mini-stat-val {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.mini-stat-lbl {
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+
+.mini-stat-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--glass-border-subtle);
+}
+
 /* -------------------------------------------------------------
    7. MACRO AUTOMATION CARD
    ------------------------------------------------------------- */

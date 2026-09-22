@@ -7,7 +7,7 @@
   <title>Auto Text Expander Pro - Liquid Glass Studio</title>
   <!-- Tailwind CSS & Liquid Glass Stylesheet -->
   <link rel="stylesheet" href="tailwind.css?v=7.1">
-  <link rel="stylesheet" href="options.css?v=8.1">
+  <link rel="stylesheet" href="options.css?v=8.2">
 </head>
 
 <body>
@@ -787,6 +787,231 @@
           </div>
         </section>
 
+        <!-- ========================================================
+             TAB 7: THỐNG KÊ NĂNG SUẤT (PRODUCTIVITY ANALYTICS)
+             ======================================================== -->
+        <section id="tab-analytics" class="tab-pane">
+          <div class="analytics-layout-scroll">
+            
+            <!-- Hero Header Bar -->
+            <div class="glass-card analytics-hero-card">
+              <div class="analytics-hero-left">
+                <div class="analytics-hero-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                  </svg>
+                </div>
+                <div class="analytics-hero-text">
+                  <h2>Bảng Thống Kê Năng Suất & Hiệu Quả Làm Việc</h2>
+                  <p>Tự động ghi nhận lượt mở rộng phím tắt, khối lượng ký tự và thời gian bạn đã tiết kiệm được.</p>
+                </div>
+              </div>
+              <div class="analytics-hero-controls">
+                <div class="analytics-wpm-control">
+                  <span class="wpm-label">Tốc độ gõ:</span>
+                  <select id="select-wpm-speed" class="glass-select-field" title="Chọn tốc độ gõ để tính toán thời gian tiết kiệm">
+                    <option value="30">30 WPM (Thong thả)</option>
+                    <option value="40" selected>40 WPM (Trung bình)</option>
+                    <option value="50">50 WPM (Nhanh)</option>
+                    <option value="60">60 WPM (Rất nhanh)</option>
+                    <option value="80">80 WPM (Tốc ký chuyên nghiệp)</option>
+                  </select>
+                </div>
+                <button type="button" class="btn-glass-danger" id="btn-open-reset-stats-modal" title="Xóa dữ liệu thống kê để bắt đầu chu kỳ đo lường mới">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                  </svg>
+                  <span>Đặt lại số liệu</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 4 Core KPI Liquid Glass Cards -->
+            <div class="analytics-kpi-grid">
+              <!-- KPI 1: Expansions -->
+              <div class="glass-card kpi-card kpi-indigo">
+                <div class="kpi-header">
+                  <span class="kpi-title">Tổng Lượt Kích Hoạt</span>
+                  <div class="kpi-icon-pill">⚡</div>
+                </div>
+                <div class="kpi-value-row">
+                  <span class="kpi-number" id="kpi-total-expansions">0</span>
+                  <span class="kpi-unit">lần</span>
+                </div>
+                <div class="kpi-footer-note" id="kpi-expansions-sub">
+                  <span>0 lượt hôm nay</span>
+                </div>
+              </div>
+
+              <!-- KPI 2: Characters Saved -->
+              <div class="glass-card kpi-card kpi-cyan">
+                <div class="kpi-header">
+                  <span class="kpi-title">Ký Tự Đã Tiết Kiệm</span>
+                  <div class="kpi-icon-pill">✍️</div>
+                </div>
+                <div class="kpi-value-row">
+                  <span class="kpi-number" id="kpi-chars-saved">0</span>
+                  <span class="kpi-unit">ký tự</span>
+                </div>
+                <div class="kpi-footer-note" id="kpi-words-saved">
+                  <span>Tương đương ~0 từ gõ tay</span>
+                </div>
+              </div>
+
+              <!-- KPI 3: Estimated Time Saved -->
+              <div class="glass-card kpi-card kpi-emerald">
+                <div class="kpi-header">
+                  <span class="kpi-title">Thời Gian Tiết Kiệm</span>
+                  <div class="kpi-icon-pill">⏳</div>
+                </div>
+                <div class="kpi-value-row">
+                  <span class="kpi-number" id="kpi-time-saved">0</span>
+                  <span class="kpi-unit" id="kpi-time-unit">phút</span>
+                </div>
+                <div class="kpi-footer-note" id="kpi-time-sub">
+                  <span>Ước tính theo 40 WPM</span>
+                </div>
+              </div>
+
+              <!-- KPI 4: Macro Automations -->
+              <div class="glass-card kpi-card kpi-amber">
+                <div class="kpi-header">
+                  <span class="kpi-title">Tự Động Hóa (Macro)</span>
+                  <div class="kpi-icon-pill">🚀</div>
+                </div>
+                <div class="kpi-value-row">
+                  <span class="kpi-number" id="kpi-macros-run">0</span>
+                  <span class="kpi-unit">lượt</span>
+                </div>
+                <div class="kpi-footer-note" id="kpi-macros-sub">
+                  <span>Kịch bản đã hoàn thành</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Two-Column Analytics Layout: Left (Activity Chart & Milestones) + Right (Top Snippets Leaderboard) -->
+            <div class="analytics-main-grid">
+              
+              <!-- LEFT COLUMN: Chart + Milestones -->
+              <div class="analytics-left-col">
+                
+                <!-- 14-Day Activity Chart Card -->
+                <div class="glass-card analytics-chart-card">
+                  <div class="card-head">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 16px;">📈</span>
+                      <h3 style="margin: 0;">Xu Hướng Hoạt Động 14 Ngày Qua</h3>
+                    </div>
+                    <span class="glass-pill-tag accent" id="chart-total-14d-badge">0 lượt kích hoạt</span>
+                  </div>
+                  <div class="card-content" style="padding: 16px 18px;">
+                    <!-- Interactive Bar Chart Container -->
+                    <div class="daily-chart-bars-wrap" id="daily-chart-bars">
+                      <!-- Rendered dynamically by JS -->
+                    </div>
+                    <div class="daily-chart-legend">
+                      <div class="legend-item">
+                        <span class="legend-dot current"></span>
+                        <span>Hôm nay</span>
+                      </div>
+                      <div class="legend-item">
+                        <span class="legend-dot normal"></span>
+                        <span>Các ngày trước</span>
+                      </div>
+                      <span class="legend-hint">💡 Di chuột vào từng cột để xem chi tiết</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Productivity Milestones / Gamification -->
+                <div class="glass-card analytics-milestones-card">
+                  <div class="card-head">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 16px;">🏆</span>
+                      <h3 style="margin: 0;">Huy Hiệu & Cột Mốc Đạt Được</h3>
+                    </div>
+                    <span class="glass-pill-tag success" id="milestones-level-badge">Cấp độ: Tân Thủ</span>
+                  </div>
+                  <div class="card-content">
+                    <div class="milestones-grid">
+                      <!-- Badge 1 -->
+                      <div class="milestone-item" id="milestone-10">
+                        <div class="milestone-icon">🥉</div>
+                        <div class="milestone-info">
+                          <strong>Tân Thủ Tốc Ký</strong>
+                          <span>10 lượt kích hoạt</span>
+                        </div>
+                        <span class="milestone-status">Đang khóa</span>
+                      </div>
+                      <!-- Badge 2 -->
+                      <div class="milestone-item" id="milestone-100">
+                        <div class="milestone-icon">🥈</div>
+                        <div class="milestone-info">
+                          <strong>Chuyên Viên Năng Suất</strong>
+                          <span>100 lượt kích hoạt</span>
+                        </div>
+                        <span class="milestone-status">Đang khóa</span>
+                      </div>
+                      <!-- Badge 3 -->
+                      <div class="milestone-item" id="milestone-500">
+                        <div class="milestone-icon">🥇</div>
+                        <div class="milestone-info">
+                          <strong>Bậc Thầy Gõ Tắt</strong>
+                          <span>500 lượt kích hoạt</span>
+                        </div>
+                        <span class="milestone-status">Đang khóa</span>
+                      </div>
+                      <!-- Badge 4 -->
+                      <div class="milestone-item" id="milestone-1000">
+                        <div class="milestone-icon">💎</div>
+                        <div class="milestone-info">
+                          <strong>Huyền Thoại Năng Suất</strong>
+                          <span>1,000+ lượt kích hoạt</span>
+                        </div>
+                        <span class="milestone-status">Đang khóa</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Progress Bar to Next Level -->
+                    <div class="milestone-progress-wrap">
+                      <div class="milestone-progress-labels">
+                        <span id="milestone-next-label">Tiến độ đến cột mốc tiếp theo:</span>
+                        <strong id="milestone-next-pct">0%</strong>
+                      </div>
+                      <div class="glass-progress-track">
+                        <div class="glass-progress-bar" id="milestone-progress-bar" style="width: 0%;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- RIGHT COLUMN: Top Snippets Leaderboard -->
+              <div class="analytics-right-col">
+                <div class="glass-card analytics-leaderboard-card">
+                  <div class="card-head">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="font-size: 16px;">🔥</span>
+                      <h3 style="margin: 0;">Bảng Xếp Hạng Phím Tắt Sử Dụng Nhiều Nhất</h3>
+                    </div>
+                    <span class="glass-pill-tag accent">Top Favorites</span>
+                  </div>
+                  <div class="card-content" style="padding: 12px 14px;">
+                    <div class="leaderboard-list" id="analytics-top-snippets-list">
+                      <!-- Rendered dynamically by JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+        </section>
+
       </main>
 
       <!-- ========================================================
@@ -857,6 +1082,19 @@
             </div>
             <span class="nav-label">Macro</span>
             <span class="nav-count-pill" id="badge-total-macros">0</span>
+          </button>
+
+          <button type="button" class="nav-item" data-tab="analytics" role="tab" aria-selected="false">
+            <div class="nav-icon-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"></line>
+                <line x1="12" y1="20" x2="12" y2="4"></line>
+                <line x1="6" y1="20" x2="6" y2="14"></line>
+              </svg>
+            </div>
+            <span class="nav-label">Thống Kê</span>
+            <span class="nav-count-pill accent" id="badge-total-expansions">0</span>
           </button>
 
           <button type="button" class="nav-item" data-tab="url-rules" role="tab" aria-selected="false">
@@ -1139,10 +1377,35 @@
     </div>
   </div>
 
+  <!-- MODAL: XÁC NHẬN ĐẶT LẠI THỐNG KÊ (RESET STATS) -->
+  <div class="glass-modal-backdrop" id="modal-reset-stats" style="display: none;">
+    <div class="glass-modal-window" style="max-width: 440px;">
+      <div class="modal-head">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 18px;">⚠️</span>
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--accent-rose);">Xác Nhận Đặt Lại Thống Kê</h3>
+        </div>
+        <button type="button" class="btn-modal-close" id="btn-close-reset-stats-modal">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 18px 20px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+        <p>Bạn có chắc chắn muốn xóa toàn bộ số liệu đo lường năng suất (lượt kích hoạt, ký tự tiết kiệm, biểu đồ hoạt động và bảng xếp hạng)?</p>
+        <p style="margin-top: 10px; font-size: 12px; color: var(--text-muted); background: rgba(99, 102, 241, 0.06); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(99, 102, 241, 0.15);">
+          💡 <em>Lưu ý:</em> Toàn bộ danh sách phím tắt và kịch bản macro của bạn được bảo toàn an toàn tuyệt đối. Chỉ có các chỉ số thống kê được đặt lại về 0 để bạn bắt đầu chu kỳ đo lường mới.
+        </p>
+      </div>
+      <div class="modal-foot" style="display: flex; justify-content: flex-end; gap: 10px; padding: 12px 20px; border-top: 1px solid var(--glass-border-subtle);">
+        <button type="button" class="btn-glass-ghost" id="btn-cancel-reset-stats" style="padding: 6px 14px; font-size: 12px;">Hủy bỏ</button>
+        <button type="button" class="btn-glass-danger" id="btn-confirm-reset-stats" style="padding: 6px 16px; font-size: 12px;">
+          <span>Xác nhận đặt lại</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Markdown & HTML Sanitizer Libraries -->
   <script src="../lib/marked.min.js"></script>
   <script src="../lib/purify.min.js"></script>
-  <script src="options.js?v=8.1"></script>
+  <script src="options.js?v=8.2"></script>
 </body>
 
 </html>

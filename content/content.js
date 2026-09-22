@@ -640,6 +640,34 @@
     } catch (e) {}
   }
 
+  // Báo cáo số liệu Năng Suất (Productivity Analytics) về background
+  function reportExpansionStat(snippet, expandedText) {
+    try {
+      if (!snippet || typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.sendMessage) return;
+      const shortcutLen = (snippet.shortcut || '').length;
+      const textLen = (expandedText || '').length;
+      const charsSaved = Math.max(0, textLen - shortcutLen);
+      chrome.runtime.sendMessage({
+        action: 'RECORD_EXPANSION',
+        snippetId: snippet.id,
+        shortcut: snippet.shortcut,
+        charsSaved: charsSaved
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  function reportMacroRunStat(macro) {
+    try {
+      if (!macro || typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.sendMessage) return;
+      chrome.runtime.sendMessage({
+        action: 'RECORD_MACRO_RUN',
+        macroId: macro.id,
+        macroName: macro.name,
+        stepsCount: (macro.steps || []).length
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
   // Thực hiện chèn phím tắt cho Input / Textarea
   async function performInputExpansion(el, matchedSnippet, rawContent, caretPos, textBeforeCaret, textAfterCaret, fullValue) {
     try {
@@ -704,6 +732,7 @@
       }
 
       showToast(matchedSnippet);
+      reportExpansionStat(matchedSnippet, replacement);
     } catch (err) {
       console.error('[Auto Text Expander] Lỗi khi chèn text:', err);
     } finally {
@@ -740,6 +769,7 @@
         setTimeout(() => {
           if (window.AteMacroReplayer) {
             window.AteMacroReplayer.play(matchedMacro);
+            reportMacroRunStat(matchedMacro);
           }
         }, 80);
       } catch (e) {
@@ -873,6 +903,7 @@
 
       rootEl.dispatchEvent(new Event('input', { bubbles: true }));
       showToast(matchedSnippet);
+      reportExpansionStat(matchedSnippet, resolvedContent);
     } catch (err) {
       console.error('[Auto Text Expander] Lỗi khi chèn contenteditable:', err);
     } finally {
@@ -1024,6 +1055,7 @@
 
       targetEl.dispatchEvent(new Event('input', { bubbles: true }));
       showToast(snippet);
+      reportExpansionStat(snippet, replacement);
       return;
     }
 
@@ -1116,6 +1148,7 @@
 
       editableRoot.dispatchEvent(new Event('input', { bubbles: true }));
       showToast(snippet);
+      reportExpansionStat(snippet, resolvedContent);
       return;
     }
 
@@ -1124,8 +1157,10 @@
     try {
       await navigator.clipboard.writeText(plainText);
       showToast(snippet, `Đã sao chép <span class="ate-toast-shortcut">${escapeHtml(snippet.shortcut)}</span> vào Clipboard!`);
+      reportExpansionStat(snippet, plainText);
     } catch (e) {
       showToast(snippet, `Đã phân giải: ${escapeHtml(snippet.shortcut)}`);
+      reportExpansionStat(snippet, plainText);
     }
   }
 
@@ -1141,8 +1176,11 @@
     playMacroDirectly: (macro) => {
       if (window.AteMacroReplayer) {
         window.AteMacroReplayer.play(macro);
+        reportMacroRunStat(macro);
       }
     },
+    reportExpansionStat: (snippet, text) => reportExpansionStat(snippet, text),
+    reportMacroRunStat: (macro) => reportMacroRunStat(macro),
     showToast: (snippet, text) => showToast(snippet, text)
   };
 

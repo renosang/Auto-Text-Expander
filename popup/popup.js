@@ -34,6 +34,12 @@
   const paletteShortcutBadge = document.getElementById('popup-palette-shortcut-badge');
 
   let toastTimer = null;
+  let stats = {
+    totalExpansions: 0,
+    totalCharsSaved: 0,
+    totalMacrosRun: 0,
+    wpm: 40
+  };
 
   async function init() {
     await detectCurrentTab();
@@ -42,6 +48,7 @@
     renderSiteStatus();
     renderMacros();
     renderSnippets();
+    renderMiniStats();
 
     if (paletteShortcutBadge && settings.paletteShortcut) {
       paletteShortcutBadge.textContent = settings.paletteShortcut;
@@ -110,7 +117,7 @@
   async function loadData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros']);
+        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros', 'stats']);
         if (data.snippets && Array.isArray(data.snippets)) {
           snippets = data.snippets;
         }
@@ -120,16 +127,62 @@
         if (data.settings) {
           settings = { ...settings, ...data.settings };
         }
+        if (data.stats) {
+          stats = { ...stats, ...data.stats };
+        }
       } else {
         const localSnippets = localStorage.getItem('ate_snippets');
         const localMacros = localStorage.getItem('ate_macros');
         const localSettings = localStorage.getItem('ate_settings');
+        const localStats = localStorage.getItem('ate_stats');
         if (localSnippets) snippets = JSON.parse(localSnippets);
         if (localMacros) macros = JSON.parse(localMacros);
         if (localSettings) settings = { ...settings, ...JSON.parse(localSettings) };
+        if (localStats) stats = { ...stats, ...JSON.parse(localStats) };
       }
     } catch (e) {
       console.warn('Lỗi nạp dữ liệu popup:', e);
+    }
+  }
+
+  function renderMiniStats() {
+    const popExpansions = document.getElementById('pop-stat-expansions');
+    const popChars = document.getElementById('pop-stat-chars');
+    const popTime = document.getElementById('pop-stat-time');
+    const miniStatsCard = document.getElementById('popup-mini-stats');
+
+    if (!stats) return;
+
+    if (popExpansions) {
+      popExpansions.textContent = (stats.totalExpansions || 0).toLocaleString();
+    }
+
+    if (popChars) {
+      const chars = stats.totalCharsSaved || 0;
+      popChars.textContent = chars >= 1000 ? (chars / 1000).toFixed(1) + 'k' : String(chars);
+    }
+
+    if (popTime) {
+      const wpm = stats.wpm || 40;
+      const totalMinutes = (stats.totalCharsSaved || 0) / (wpm * 5);
+      if (totalMinutes < 1) {
+        popTime.textContent = `${Math.round(totalMinutes * 60)}s`;
+      } else if (totalMinutes < 60) {
+        popTime.textContent = `${Math.round(totalMinutes)}m`;
+      } else {
+        const hours = Math.floor(totalMinutes / 60);
+        popTime.textContent = `${hours}h`;
+      }
+    }
+
+    if (miniStatsCard) {
+      miniStatsCard.addEventListener('click', () => {
+        if (chrome.runtime.openOptionsPage) {
+          chrome.runtime.openOptionsPage();
+        } else {
+          window.open(chrome.runtime.getURL('options/options.html#analytics'));
+        }
+      });
     }
   }
 

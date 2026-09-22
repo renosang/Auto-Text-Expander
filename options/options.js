@@ -111,6 +111,17 @@
   let importedFileData = null;
   let toastTimer = null;
 
+  let stats = {
+    totalExpansions: 0,
+    totalCharsSaved: 0,
+    totalMacrosRun: 0,
+    wpm: 40,
+    snippetUsage: {},
+    dailyHistory: {},
+    firstUsedDate: new Date().toISOString().slice(0, 10),
+    lastUsedDate: new Date().toISOString().slice(0, 10)
+  };
+
   // DOM Elements
   const navItems = document.querySelectorAll('.nav-item');
   const tabPanes = document.querySelectorAll('.tab-pane');
@@ -205,15 +216,17 @@
     setupUrlRules();
     setupBackup();
     setupSettingsTab();
+    setupAnalyticsTab();
     renderSnippets();
     renderMacrosList();
     renderUrlRules();
+    renderAnalytics();
   }
 
   async function loadData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros', 'categories']);
+        const data = await chrome.storage.local.get(['snippets', 'settings', 'macros', 'categories', 'stats']);
         if (data.snippets && Array.isArray(data.snippets) && data.snippets.length > 0) {
           snippets = data.snippets;
         } else {
@@ -231,12 +244,16 @@
         if (data.settings) {
           settings = { ...settings, ...data.settings };
         }
+        if (data.stats) {
+          stats = { ...stats, ...data.stats };
+        }
       } else {
         // Fallback localStorage cho môi trường preview/test ngoài extension
         const localSnippets = localStorage.getItem('ate_snippets');
         const localMacros = localStorage.getItem('ate_macros');
         const localSettings = localStorage.getItem('ate_settings');
         const localCats = localStorage.getItem('ate_categories');
+        const localStats = localStorage.getItem('ate_stats');
         if (localSnippets) {
           try { snippets = JSON.parse(localSnippets); } catch (e) { snippets = [...DEFAULT_SNIPPETS]; }
         } else {
@@ -255,6 +272,9 @@
         if (localSettings) {
           try { settings = { ...settings, ...JSON.parse(localSettings) }; } catch (e) {}
         }
+        if (localStats) {
+          try { stats = { ...stats, ...JSON.parse(localStats) }; } catch (e) {}
+        }
       }
     } catch (e) {
       console.warn('Nạp dữ liệu dự phòng:', e);
@@ -266,12 +286,13 @@
   async function saveData() {
     try {
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-        await chrome.storage.local.set({ snippets, settings, macros, categories });
+        await chrome.storage.local.set({ snippets, settings, macros, categories, stats });
       } else {
         localStorage.setItem('ate_snippets', JSON.stringify(snippets));
         localStorage.setItem('ate_settings', JSON.stringify(settings));
         localStorage.setItem('ate_macros', JSON.stringify(macros));
         localStorage.setItem('ate_categories', JSON.stringify(categories));
+        localStorage.setItem('ate_stats', JSON.stringify(stats));
       }
       updateBadge();
     } catch (e) {
@@ -286,6 +307,10 @@
     }
     if (badgeTotalMacros) {
       badgeTotalMacros.textContent = macros.length;
+    }
+    const badgeTotalExpansions = document.getElementById('badge-total-expansions');
+    if (badgeTotalExpansions) {
+      badgeTotalExpansions.textContent = stats.totalExpansions || 0;
     }
     if (listCounter) {
       listCounter.textContent = `${snippets.length} phím tắt đã lưu`;
@@ -322,8 +347,21 @@
         item.classList.add('active');
         const activePane = document.getElementById(`tab-${targetTab}`);
         if (activePane) activePane.classList.add('active');
+
+        if (targetTab === 'analytics') {
+          renderAnalytics();
+        }
       });
     });
+
+    // Hỗ trợ mở trực tiếp tab qua URL hash (ví dụ: options.html#analytics)
+    const initialHash = (window.location.hash || '').replace('#', '').trim();
+    if (initialHash) {
+      const targetNav = document.querySelector(`.nav-item[data-tab="${initialHash}"]`);
+      if (targetNav) {
+        setTimeout(() => targetNav.click(), 50);
+      }
+    }
   }
 
   // -------------------------------------------------------------
@@ -2289,6 +2327,318 @@
     }
     if (btnSaveProfile) {
       btnSaveProfile.addEventListener('click', () => saveSettingsHandler(true));
+    }
+  }
+
+  // -------------------------------------------------------------
+  // 12. PRODUCTIVITY ANALYTICS CONTROLLER
+  // -------------------------------------------------------------
+  function formatSavedTime(charsSaved, wpm = 40) {
+    const charsPerMin = (wpm || 40) * 5; // Chuẩn: 1 từ = 5 ký tự (kể cả dấu cách)
+    const totalMinutes = (charsSaved || 0) / charsPerMin;
+
+    if (totalMinutes < 1) {
+      const seconds = Math.max(0, Math.round(totalMinutes * 60));
+      return { value: seconds, unit: 'giây' };
+    }
+    if (totalMinutes < 60) {
+      return { value: Math.round(totalMinutes), unit: 'phút' };
+    }
+    const hours = Math.floor(totalMinutes / 60);
+    const remainingMins = Math.round(totalMinutes % 60);
+    if (remainingMins === 0) {
+      return { value: `${hours}`, unit: 'giờ' };
+    }
+    return { value: `${hours}h ${remainingMins}`, unit: 'phút' };
+  }
+
+  function setupAnalyticsTab() {
+    const selectWpmSpeed = document.getElementById('select-wpm-speed');
+    const btnOpenResetStatsModal = document.getElementById('btn-open-reset-stats-modal');
+    const modalResetStats = document.getElementById('modal-reset-stats');
+    const btnCloseResetStatsModal = document.getElementById('btn-close-reset-stats-modal');
+    const btnCancelResetStats = document.getElementById('btn-cancel-reset-stats');
+    const btnConfirmResetStats = document.getElementById('btn-confirm-reset-stats');
+
+    if (selectWpmSpeed) {
+      selectWpmSpeed.value = String((stats && stats.wpm) || 40);
+      selectWpmSpeed.addEventListener('change', async () => {
+        const newWpm = parseInt(selectWpmSpeed.value, 10) || 40;
+        stats.wpm = newWpm;
+        await saveData();
+        renderAnalytics();
+        showToast(`Đã đổi tốc độ gõ sang ${newWpm} WPM!`, 'success');
+      });
+    }
+
+    if (btnOpenResetStatsModal && modalResetStats) {
+      btnOpenResetStatsModal.addEventListener('click', () => {
+        modalResetStats.style.display = 'flex';
+      });
+    }
+
+    if (btnCloseResetStatsModal && modalResetStats) {
+      btnCloseResetStatsModal.addEventListener('click', () => {
+        modalResetStats.style.display = 'none';
+      });
+    }
+
+    if (btnCancelResetStats && modalResetStats) {
+      btnCancelResetStats.addEventListener('click', () => {
+        modalResetStats.style.display = 'none';
+      });
+    }
+
+    if (btnConfirmResetStats && modalResetStats) {
+      btnConfirmResetStats.addEventListener('click', async () => {
+        try {
+          if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+            chrome.runtime.sendMessage({ action: 'RESET_STATS' }, async (res) => {
+              const today = new Date().toISOString().slice(0, 10);
+              stats = (res && res.stats) ? res.stats : {
+                totalExpansions: 0,
+                totalCharsSaved: 0,
+                totalMacrosRun: 0,
+                wpm: stats.wpm || 40,
+                snippetUsage: {},
+                dailyHistory: {},
+                firstUsedDate: today,
+                lastUsedDate: today
+              };
+              await saveData();
+              updateBadge();
+              renderAnalytics();
+              modalResetStats.style.display = 'none';
+              showToast('Đã đặt lại toàn bộ số liệu đo lường năng suất!', 'success');
+            });
+          } else {
+            const today = new Date().toISOString().slice(0, 10);
+            stats = {
+              totalExpansions: 0,
+              totalCharsSaved: 0,
+              totalMacrosRun: 0,
+              wpm: stats.wpm || 40,
+              snippetUsage: {},
+              dailyHistory: {},
+              firstUsedDate: today,
+              lastUsedDate: today
+            };
+            await saveData();
+            updateBadge();
+            renderAnalytics();
+            modalResetStats.style.display = 'none';
+            showToast('Đã đặt lại toàn bộ số liệu đo lường năng suất!', 'success');
+          }
+        } catch (e) {
+          modalResetStats.style.display = 'none';
+          showToast('Có lỗi xảy ra khi đặt lại số liệu!', 'error');
+        }
+      });
+    }
+
+    // Tự động cập nhật số liệu khi có thay đổi từ background
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && changes.stats && changes.stats.newValue) {
+          stats = { ...stats, ...changes.stats.newValue };
+          updateBadge();
+          const activeAnalytics = document.querySelector('#tab-analytics.active');
+          if (activeAnalytics) {
+            renderAnalytics();
+          }
+        }
+      });
+    }
+  }
+
+  function renderAnalytics() {
+    const kpiExpansions = document.getElementById('kpi-total-expansions');
+    const kpiExpansionsSub = document.getElementById('kpi-expansions-sub');
+    const kpiCharsSaved = document.getElementById('kpi-chars-saved');
+    const kpiWordsSaved = document.getElementById('kpi-words-saved');
+    const kpiTimeSaved = document.getElementById('kpi-time-saved');
+    const kpiTimeUnit = document.getElementById('kpi-time-unit');
+    const kpiTimeSub = document.getElementById('kpi-time-sub');
+    const kpiMacrosRun = document.getElementById('kpi-macros-run');
+    const kpiMacrosSub = document.getElementById('kpi-macros-sub');
+    const selectWpm = document.getElementById('select-wpm-speed');
+    const chartTotalBadge = document.getElementById('chart-total-14d-badge');
+    const dailyChartBars = document.getElementById('daily-chart-bars');
+    const topSnippetsList = document.getElementById('analytics-top-snippets-list');
+
+    const wpm = (stats && stats.wpm) || (selectWpm ? parseInt(selectWpm.value, 10) : 40);
+    if (selectWpm && selectWpm.value !== String(wpm)) selectWpm.value = String(wpm);
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayData = (stats.dailyHistory && stats.dailyHistory[todayStr]) || { expansions: 0, charsSaved: 0, macrosRun: 0 };
+
+    // 1. Cập nhật 4 thẻ KPI
+    if (kpiExpansions) kpiExpansions.textContent = (stats.totalExpansions || 0).toLocaleString();
+    if (kpiExpansionsSub) kpiExpansionsSub.innerHTML = `<span>⚡ ${todayData.expansions || 0} lượt hôm nay</span>`;
+
+    if (kpiCharsSaved) kpiCharsSaved.textContent = (stats.totalCharsSaved || 0).toLocaleString();
+    const approxWords = Math.round((stats.totalCharsSaved || 0) / 5);
+    if (kpiWordsSaved) kpiWordsSaved.innerHTML = `<span>Tương đương ~${approxWords.toLocaleString()} từ gõ tay</span>`;
+
+    const timeResult = formatSavedTime(stats.totalCharsSaved || 0, wpm);
+    if (kpiTimeSaved) kpiTimeSaved.textContent = timeResult.value;
+    if (kpiTimeUnit) kpiTimeUnit.textContent = timeResult.unit;
+    if (kpiTimeSub) kpiTimeSub.innerHTML = `<span>Ước tính theo tốc độ ${wpm} WPM</span>`;
+
+    if (kpiMacrosRun) kpiMacrosRun.textContent = (stats.totalMacrosRun || 0).toLocaleString();
+    if (kpiMacrosSub) kpiMacrosSub.innerHTML = `<span>🚀 ${todayData.macrosRun || 0} lượt hôm nay</span>`;
+
+    // 2. Vẽ biểu đồ hoạt động 14 ngày (Daily Activity Chart)
+    if (dailyChartBars) {
+      dailyChartBars.innerHTML = '';
+      const days = [];
+      let total14dExpansions = 0;
+      let maxDailyCount = 1;
+
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateKey = d.toISOString().slice(0, 10);
+        const dayDate = `${d.getDate()}/${d.getMonth() + 1}`;
+        const dayStat = (stats.dailyHistory && stats.dailyHistory[dateKey]) || { expansions: 0, charsSaved: 0, macrosRun: 0 };
+
+        total14dExpansions += dayStat.expansions;
+        if (dayStat.expansions > maxDailyCount) {
+          maxDailyCount = dayStat.expansions;
+        }
+
+        days.push({
+          dateKey,
+          dayDate,
+          isToday: i === 0,
+          expansions: dayStat.expansions,
+          charsSaved: dayStat.charsSaved
+        });
+      }
+
+      if (chartTotalBadge) {
+        chartTotalBadge.textContent = `${total14dExpansions.toLocaleString()} lượt trong 14 ngày`;
+      }
+
+      days.forEach(day => {
+        const col = document.createElement('div');
+        col.className = 'daily-chart-col';
+
+        const pct = day.expansions > 0 
+          ? Math.max(12, Math.min(100, Math.round((day.expansions / maxDailyCount) * 100)))
+          : 4;
+
+        col.innerHTML = `
+          <div class="daily-chart-tooltip">
+            <strong>${day.dayDate}${day.isToday ? ' (Hôm nay)' : ''}</strong><br>
+            ⚡ ${day.expansions.toLocaleString()} lượt mở rộng<br>
+            ✍️ ${day.charsSaved.toLocaleString()} ký tự tiết kiệm
+          </div>
+          <div class="daily-chart-bar ${day.isToday ? 'current-day' : ''}" style="height: ${pct}%;"></div>
+          <span class="daily-chart-day-label">${day.isToday ? 'Hôm nay' : day.dayDate}</span>
+        `;
+        dailyChartBars.appendChild(col);
+      });
+    }
+
+    // 3. Hệ thống danh hiệu thành tích (Gamification Milestones)
+    renderMilestones();
+
+    // 4. Bảng xếp hạng Top phím tắt sử dụng nhiều nhất (Leaderboard)
+    if (topSnippetsList) {
+      topSnippetsList.innerHTML = '';
+      const usageMap = stats.snippetUsage || {};
+      const sortedSnippets = [...snippets]
+        .map(s => ({ ...s, count: usageMap[s.id] || 0 }))
+        .filter(s => s.count > 0)
+        .sort((a, b) => b.count - a.count);
+
+      if (sortedSnippets.length === 0) {
+        topSnippetsList.innerHTML = `
+          <div style="padding: 34px 16px; text-align: center; color: var(--text-muted); font-size: 12px;">
+            <span style="font-size: 28px; display: block; margin-bottom: 8px;">📊</span>
+            Chưa có phím tắt nào được kích hoạt.<br>
+            Hãy thử gõ phím tắt trên bất kỳ trang web nào để bắt đầu đo lường hiệu suất!
+          </div>
+        `;
+      } else {
+        const maxUsage = sortedSnippets[0].count || 1;
+        sortedSnippets.slice(0, 8).forEach((s, idx) => {
+          const rank = idx + 1;
+          const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+          const barPct = Math.max(10, Math.round((s.count / maxUsage) * 100));
+
+          const item = document.createElement('div');
+          item.className = 'leaderboard-item';
+          item.innerHTML = `
+            <div class="leaderboard-item-top">
+              <span class="leaderboard-rank-tag ${rankClass}">${rank}</span>
+              <div class="leaderboard-info">
+                <span class="leaderboard-sc">${escapeHtml(s.shortcut)}</span>
+                <span class="leaderboard-lb">${escapeHtml(s.label || s.content.slice(0, 30))}</span>
+              </div>
+              <span class="leaderboard-count">${s.count.toLocaleString()} lần</span>
+            </div>
+            <div class="leaderboard-bar-track">
+              <div class="leaderboard-bar-fill" style="width: ${barPct}%;"></div>
+            </div>
+          `;
+          topSnippetsList.appendChild(item);
+        });
+      }
+    }
+  }
+
+  function renderMilestones() {
+    const total = (stats && stats.totalExpansions) || 0;
+    const levelBadge = document.getElementById('milestones-level-badge');
+    const nextLabel = document.getElementById('milestone-next-label');
+    const nextPct = document.getElementById('milestone-next-pct');
+    const progressBar = document.getElementById('milestone-progress-bar');
+
+    const milestones = [
+      { id: 'milestone-10', target: 10, name: 'Tân Thủ Tốc Ký' },
+      { id: 'milestone-100', target: 100, name: 'Chuyên Viên Năng Suất' },
+      { id: 'milestone-500', target: 500, name: 'Bậc Thầy Gõ Tắt' },
+      { id: 'milestone-1000', target: 1000, name: 'Huyền Thoại Năng Suất' }
+    ];
+
+    let currentLevel = 'Người Khởi Đầu';
+    let nextTarget = 10;
+    let prevTarget = 0;
+
+    milestones.forEach(m => {
+      const el = document.getElementById(m.id);
+      if (!el) return;
+      const statusEl = el.querySelector('.milestone-status');
+      if (total >= m.target) {
+        el.classList.add('unlocked');
+        if (statusEl) statusEl.textContent = '✓ Đạt';
+        currentLevel = m.name;
+        prevTarget = m.target;
+      } else {
+        el.classList.remove('unlocked');
+        if (statusEl) statusEl.textContent = `${total}/${m.target}`;
+        if (nextTarget === 10 || nextTarget <= prevTarget) {
+          nextTarget = m.target;
+        }
+      }
+    });
+
+    if (levelBadge) {
+      levelBadge.textContent = `Cấp độ: ${currentLevel}`;
+    }
+
+    if (total >= 1000) {
+      if (nextLabel) nextLabel.textContent = 'Bạn đã đạt cấp độ Huyền Thoại cao nhất!';
+      if (nextPct) nextPct.textContent = '100%';
+      if (progressBar) progressBar.style.width = '100%';
+    } else {
+      const span = nextTarget - prevTarget;
+      const progress = Math.min(100, Math.max(0, Math.round(((total - prevTarget) / (span || 1)) * 100)));
+      if (nextLabel) nextLabel.textContent = `Tiến độ tới cột mốc ${nextTarget} lượt:`;
+      if (nextPct) nextPct.textContent = `${progress}%`;
+      if (progressBar) progressBar.style.width = `${progress}%`;
     }
   }
 
