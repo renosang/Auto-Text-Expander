@@ -45,7 +45,8 @@
         "lib/purify.min.js",
         "content/content.js",
         "content/macro-recorder.js",
-        "content/macro-replayer.js"
+        "content/macro-replayer.js",
+        "content/command-palette.js"
       ],
       "css": [
         "content/content.css"
@@ -61,6 +62,13 @@
         "mac": "Command+Shift+E"
       },
       "description": "Mở popup Auto Text Expander"
+    },
+    "toggle_command_palette": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      },
+      "description": "Mở thanh tìm kiếm Command Palette nổi"
     }
   }
 }

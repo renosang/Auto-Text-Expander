@@ -30,6 +30,8 @@
   const iconMoon = document.getElementById('popup-theme-icon-moon');
   const btnStartRecordMacro = document.getElementById('btn-start-record-macro');
   const macroQuickList = document.getElementById('macro-quick-list');
+  const btnLaunchPalette = document.getElementById('btn-launch-palette');
+  const paletteShortcutBadge = document.getElementById('popup-palette-shortcut-badge');
 
   let toastTimer = null;
 
@@ -40,6 +42,29 @@
     renderSiteStatus();
     renderMacros();
     renderSnippets();
+
+    if (paletteShortcutBadge && settings.paletteShortcut) {
+      paletteShortcutBadge.textContent = settings.paletteShortcut;
+    }
+
+    if (btnLaunchPalette) {
+      btnLaunchPalette.addEventListener('click', async () => {
+        try {
+          const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+          if (tab && tab.id) {
+            chrome.tabs.sendMessage(tab.id, { action: 'toggleCommandPalette' }, () => {
+              if (chrome.runtime.lastError) {
+                showToast('Vui lòng tải lại trang web trước khi mở');
+              } else {
+                window.close();
+              }
+            });
+          }
+        } catch (e) {
+          showToast('Không thể mở trên trang này');
+        }
+      });
+    }
 
     // Event listeners
     toggleSiteActive.addEventListener('change', handleToggleSite);

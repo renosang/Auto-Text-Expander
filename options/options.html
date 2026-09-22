@@ -7,7 +7,7 @@
   <title>Auto Text Expander Pro - Liquid Glass Studio</title>
   <!-- Tailwind CSS & Liquid Glass Stylesheet -->
   <link rel="stylesheet" href="tailwind.css?v=7.1">
-  <link rel="stylesheet" href="options.css?v=7.7">
+  <link rel="stylesheet" href="options.css?v=8.1">
 </head>
 
 <body>
@@ -233,19 +233,29 @@
 
                   <!-- Dynamic Variables Tokens Ribbon (Uses .btn-var-chip!) -->
                   <div class="glass-var-tokens">
-                    <span class="tokens-label">+ Biến:</span>
+                    <button type="button" class="btn-var-add-menu" id="btn-open-var-modal" title="Xem danh mục tất cả biến và tạo biến mới">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:13px;height:13px;">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      <span>Thêm Biến ▾</span>
+                    </button>
+                    <button type="button" class="btn-var-chip" data-var="{{clipboard}}"
+                      title="Dán nội dung từ Clipboard">{{clipboard}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{cpboard}}"
+                      title="Viết tắt của Clipboard">{{cpboard}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{name}}"
+                      title="Tên của bạn hoặc tên khách hàng">{{name}}</button>
                     <button type="button" class="btn-var-chip" data-var="{{date}}"
                       title="Chèn ngày hiện tại (DD/MM/YYYY)">{{date}}</button>
                     <button type="button" class="btn-var-chip" data-var="{{time}}"
                       title="Chèn giờ hiện tại (HH:mm)">{{time}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{day}}"
+                      title="Thứ trong tuần (Thứ Hai, Thứ Ba...)">{{day}}</button>
+                    <button type="button" class="btn-var-chip" data-var="{{url}}"
+                      title="Đường dẫn trang web hiện tại">{{url}}</button>
                     <button type="button" class="btn-var-chip" data-var="{{cursor}}"
                       title="Vị trí con trỏ chuột dừng">{{cursor}}</button>
-                    <button type="button" class="btn-var-chip" data-var="{{clipboard}}"
-                      title="Dán nội dung từ Clipboard">{{clipboard}}</button>
-                    <button type="button" class="btn-var-chip" data-var="{{name}}"
-                      title="Biến tham số điền tương tác">{{name}}</button>
-                    <button type="button" class="btn-var-chip" data-var="{{choice:...}}"
-                      title="Danh sách lựa chọn">{{choice:...}}</button>
                   </div>
                 </div>
 
@@ -632,7 +642,7 @@
                     </label>
                   </div>
 
-                  <div class="setting-item-glass" style="border-bottom: none;">
+                  <div class="setting-item-glass">
                     <div>
                       <strong>Chế độ kích hoạt phím tắt</strong>
                       <p class="glass-hint">Chọn cách tiện ích nhận diện thời điểm bung văn bản.</p>
@@ -646,6 +656,38 @@
                         <input type="radio" name="triggerType" value="delimiter" id="trigger-delimiter">
                         <span>Cần gõ thêm phím cách hoặc dấu câu (Space, Enter, Tab...)</span>
                       </label>
+                    </div>
+                  </div>
+
+                  <div class="setting-item-glass" style="border-bottom: none; flex-direction: column; align-items: flex-start; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; flex-wrap: wrap; gap: 8px;">
+                      <div>
+                        <strong>Phím tắt mở Command Palette (Raycast / Spotlight-style)</strong>
+                        <p class="glass-hint">Tùy chỉnh tổ hợp phím để gọi thanh tìm kiếm nổi trực tiếp trên trang web đang duyệt.</p>
+                      </div>
+                      <button type="button" class="btn-glass-ghost" id="btn-reset-palette-shortcut" style="padding: 4px 10px; font-size: 11px;">
+                        Đặt lại mặc định
+                      </button>
+                    </div>
+
+                    <!-- Shortcut Recorder Box & Presets -->
+                    <div style="display: flex; align-items: center; gap: 8px; width: 100%; flex-wrap: wrap;">
+                      <div style="position: relative; min-width: 200px;">
+                        <input type="text" id="setting-palette-shortcut" class="glass-input-field" 
+                          value="Ctrl+Shift+K" readonly 
+                          placeholder="Nhấp vào để bấm phím..." 
+                          title="Nhấp vào đây và nhấn tổ hợp phím bạn muốn đặt"
+                          style="font-family: var(--font-mono); font-weight: 700; text-align: center; color: var(--primary); cursor: pointer; letter-spacing: 0.5px; background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.3);">
+                      </div>
+                      <span style="font-size: 11.5px; color: var(--text-secondary);">Gợi ý nhanh:</span>
+                      <button type="button" class="btn-preset-shortcut glass-pill-tag accent" data-combo="Ctrl+Shift+K" style="cursor: pointer;" title="Chọn Ctrl+Shift+K">Ctrl+Shift+K (Mặc định)</button>
+                      <button type="button" class="btn-preset-shortcut glass-pill-tag" data-combo="Ctrl+Shift+P" style="cursor: pointer;" title="Chọn Ctrl+Shift+P">Ctrl+Shift+P</button>
+                      <button type="button" class="btn-preset-shortcut glass-pill-tag" data-combo="Alt+K" style="cursor: pointer;" title="Chọn Alt+K">Alt+K</button>
+                      <button type="button" class="btn-preset-shortcut glass-pill-tag" data-combo="Ctrl+Space" style="cursor: pointer;" title="Chọn Ctrl+Space">Ctrl+Space</button>
+                      <button type="button" class="btn-preset-shortcut glass-pill-tag" data-combo="Ctrl+Shift+O" style="cursor: pointer;" title="Chọn Ctrl+Shift+O">Ctrl+Shift+O</button>
+                    </div>
+                    <div style="font-size: 11.5px; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                      <span>💡 <em>Mẹo:</em> Nhấp vào ô phím tắt màu tím và bấm tổ hợp phím bất kỳ trên bàn phím để lưu ngay lập tức.</span>
                     </div>
                   </div>
                 </div>
@@ -693,6 +735,50 @@
                         <polyline points="7 3 7 8 15 8"></polyline>
                       </svg>
                       <span>Lưu Thiết Lập</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card 3: Hồ sơ cá nhân & Biến tự động điền -->
+              <div class="glass-card" style="grid-column: 1 / -1;">
+                <div class="card-head">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 16px;">👤</span>
+                    <h3 style="margin: 0;">3. Hồ Sơ Cá Nhân (Tự Động Điền {{name}} & Chữ Ký)</h3>
+                  </div>
+                  <span class="glass-pill-tag accent">{{name}} • {{my_name}} • {{my_email}}</span>
+                </div>
+                <div class="card-content">
+                  <p class="glass-hint" style="margin-bottom: 14px;">
+                    Cấu hình thông tin của bạn một lần tại đây. Khi soạn phím tắt có chứa <code>{{name}}</code>, <code>{{my_name}}</code>, <code>{{my_email}}</code>, <code>{{my_phone}}</code>, <code>{{my_role}}</code>, tiện ích sẽ tự động điền thông tin của bạn vào văn bản!
+                  </p>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                    <div class="form-stack">
+                      <label>Tên của bạn (Tự động điền vào <code>{{name}}</code>, <code>{{my_name}}</code>):</label>
+                      <input type="text" id="setting-user-name" class="glass-input-field" placeholder="Ví dụ: Reno Sang, Nguyễn Văn A..." autocomplete="off">
+                    </div>
+                    <div class="form-stack">
+                      <label>Email của bạn (Hỗ trợ <code>{{my_email}}</code>):</label>
+                      <input type="email" id="setting-user-email" class="glass-input-field" placeholder="Ví dụ: contact@mycompany.vn..." autocomplete="off">
+                    </div>
+                    <div class="form-stack">
+                      <label>Số điện thoại (Hỗ trợ <code>{{my_phone}}</code>):</label>
+                      <input type="text" id="setting-user-phone" class="glass-input-field" placeholder="Ví dụ: 0987 654 321..." autocomplete="off">
+                    </div>
+                    <div class="form-stack">
+                      <label>Chức danh / Chữ ký (Hỗ trợ <code>{{my_role}}</code>):</label>
+                      <input type="text" id="setting-user-role" class="glass-input-field" placeholder="Ví dụ: Chuyên viên CSKH, Quản lý..." autocomplete="off">
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                    <button type="button" class="btn-glass-primary" id="btn-save-profile" style="padding: 9px 20px; font-size: 13px;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="width: 14px; height: 14px;">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      <span>Lưu Hồ Sơ Cá Nhân</span>
                     </button>
                   </div>
                 </div>
@@ -889,12 +975,174 @@
         </div>
       </div>
     </div>
+    <!-- MODAL CHỌN & TẠO BIẾN ĐỘNG (LIQUID GLASS VARIABLE PICKER) -->
+    <div id="var-picker-modal" class="glass-modal-overlay" style="display: none;">
+      <div class="glass-modal-window" style="max-width: 620px;">
+        <div class="modal-head">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 17px;">✨</span>
+            <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary);">Chọn & Tạo Biến Động Thông Minh</h3>
+          </div>
+          <button type="button" class="btn-modal-close" id="btn-close-var-modal">✕</button>
+        </div>
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; max-height: 72vh; overflow-y: auto;">
+          
+          <!-- Category 1: Hồ sơ cá nhân -->
+          <div class="var-group-block">
+            <div class="var-group-title">
+              <strong>Hồ Sơ Cá Nhân</strong>
+            </div>
+            <div class="var-items-grid">
+              <button type="button" class="btn-var-select-card" data-insert="{{name}}" title="Tên của bạn">
+                <code>{{name}}</code>
+                <span>Tên của bạn</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{my_name}}" title="Tên cá nhân của bạn">
+                <code>{{my_name}}</code>
+                <span>Tên của bạn</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{my_email}}" title="Email cá nhân">
+                <code>{{my_email}}</code>
+                <span>Email của bạn</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{my_phone}}" title="Số điện thoại">
+                <code>{{my_phone}}</code>
+                <span>Số điện thoại</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{my_role}}" title="Chức danh / Bộ phận">
+                <code>{{my_role}}</code>
+                <span>Chức danh / Chữ ký</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category 2: Clipboard & Con trỏ -->
+          <div class="var-group-block">
+            <div class="var-group-title">
+              <span>📋</span>
+              <strong>Clipboard & Con Trỏ Chuột</strong>
+            </div>
+            <div class="var-items-grid">
+              <button type="button" class="btn-var-select-card" data-insert="{{clipboard}}" title="Dán nội dung từ Clipboard">
+                <code>{{clipboard}}</code>
+                <span>Dán văn bản vừa Copy</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{cpboard}}" title="Viết tắt của Clipboard">
+                <code>{{cpboard}}</code>
+                <span>Alias của Clipboard</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{cursor}}" title="Vị trí con trỏ dừng lại sau khi bung văn bản">
+                <code>{{cursor}}</code>
+                <span>Điểm đặt con trỏ sau khi bung</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category 3: Ngày giờ -->
+          <div class="var-group-block">
+            <div class="var-group-title">
+              <span>📅</span>
+              <strong>Ngày Giờ Thông Minh</strong>
+            </div>
+            <div class="var-items-grid">
+              <button type="button" class="btn-var-select-card" data-insert="{{date}}" title="Ngày hiện tại">
+                <code>{{date}}</code>
+                <span>Hôm nay (DD/MM/YYYY)</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{time}}" title="Giờ hiện tại">
+                <code>{{time}}</code>
+                <span>Giờ hiện tại (HH:mm)</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{day}}" title="Thứ trong tuần">
+                <code>{{day}}</code>
+                <span>Thứ trong tuần (Thứ Hai...)</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{date+1d}}" title="Ngày mai">
+                <code>{{date+1d}}</code>
+                <span>Ngày mai</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{date+7d}}" title="Tuần sau">
+                <code>{{date+7d}}</code>
+                <span>1 tuần sau (+7 ngày)</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{year}}" title="Năm hiện tại">
+                <code>{{year}}</code>
+                <span>Năm hiện tại (2026)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category 4: Ngữ cảnh web -->
+          <div class="var-group-block">
+            <div class="var-group-title">
+              <span>🌐</span>
+              <strong>Ngữ Cảnh Trang Web Đang Duyệt</strong>
+            </div>
+            <div class="var-items-grid">
+              <button type="button" class="btn-var-select-card" data-insert="{{url}}" title="URL trang web">
+                <code>{{url}}</code>
+                <span>Đường dẫn URL hiện tại</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{domain}}" title="Tên miền website">
+                <code>{{domain}}</code>
+                <span>Tên miền (Domain)</span>
+              </button>
+              <button type="button" class="btn-var-select-card" data-insert="{{title}}" title="Tiêu đề trang web">
+                <code>{{title}}</code>
+                <span>Tiêu đề trang / Tab</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category 5: Đa dạng hóa câu chào -->
+          <div class="var-group-block">
+            <div class="var-group-title">
+              <span>🎲</span>
+              <strong>Đa Dạng Hóa Lời Chào (Chống Trùng Lặp / Spam)</strong>
+            </div>
+            <div class="var-items-grid">
+              <button type="button" class="btn-var-select-card" data-insert="{{random:Chào bạn|Kính chào quý khách|Hi bạn}}" title="Tự động chọn ngẫu nhiên 1 trong các câu chào">
+                <code>{{random:...}}</code>
+                <span>Chào bạn | Kính chào...</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category 6: Tạo biến điền tương tác tùy chỉnh -->
+          <div class="var-group-block" style="background: rgba(99, 102, 241, 0.04); border-color: rgba(99, 102, 241, 0.2);">
+            <div class="var-group-title">
+              <span>✏️</span>
+              <strong style="color: var(--primary);">Tạo Biến Điền Form Tương Tác Tùy Chỉnh</strong>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); margin: 2px 0 10px;">
+              Khi gõ phím tắt, tiện ích sẽ hiển thị popover thông minh yêu cầu bạn nhập dữ liệu tương ứng.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+              <div>
+                <label style="font-size: 11.5px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Tên trường (Field Key):</label>
+                <input type="text" id="custom-var-key" class="glass-input-field" placeholder="Ví dụ: ten_khach, ma_don..." autocomplete="off">
+              </div>
+              <div>
+                <label style="font-size: 11.5px; font-weight: 600; color: var(--text-secondary); display: block; margin-bottom: 4px;">Giá trị gợi ý (Mặc định):</label>
+                <input type="text" id="custom-var-default" class="glass-input-field" placeholder="Ví dụ: Quý khách, DH-101..." autocomplete="off">
+              </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="button" class="btn-glass-primary" id="btn-insert-custom-var" style="padding: 7px 16px; font-size: 12px;">
+                Chèn Biến Này Vào Nội Dung
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Markdown & HTML Sanitizer Libraries -->
   <script src="../lib/marked.min.js"></script>
   <script src="../lib/purify.min.js"></script>
-  <script src="options.js?v=7.7"></script>
+  <script src="options.js?v=8.1"></script>
 </body>
 
 </html>

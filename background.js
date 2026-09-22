@@ -67,7 +67,12 @@ const DEFAULT_SETTINGS = {
   ],
   triggerType: "immediate", // 'immediate' (ngay khi gõ xong từ khóa) hoặc 'delimiter' (khi gõ thêm Space/Enter)
   soundFeedback: false,
-  theme: "dark"
+  theme: "light",
+  userName: "",
+  userEmail: "",
+  userPhone: "",
+  userRole: "",
+  paletteShortcut: "Ctrl+Shift+K"
 };
 
 chrome.runtime.onInstalled.addListener(async (details) => {
@@ -108,5 +113,18 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 chrome.contextMenus.onClicked.addListener((info) => {
   if (info.menuItemId === "open-options") {
     chrome.runtime.openOptionsPage();
+  }
+});
+
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === "toggle_command_palette") {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab && tab.id) {
+        chrome.tabs.sendMessage(tab.id, { action: "toggleCommandPalette" }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn("[Auto Text Expander] Lỗi gửi lệnh Command Palette:", e);
+    }
   }
 });

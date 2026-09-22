@@ -132,7 +132,7 @@
   }
 
   // Hiển thị toast thông báo mở rộng nhẹ nhàng
-  function showToast(snippet) {
+  function showToast(snippet, customText = '') {
     try {
       if (!toastElement) {
         toastElement = document.createElement('div');
@@ -140,9 +140,11 @@
         document.body.appendChild(toastElement);
       }
 
+      const msg = customText || (snippet ? `Mở rộng: <span class="ate-toast-shortcut">${escapeHtml(snippet.shortcut)}</span>` : 'Hoàn tất!');
+
       toastElement.innerHTML = `
         <span class="ate-toast-badge">⚡</span>
-        <span class="ate-toast-text">Mở rộng: <span class="ate-toast-shortcut">${escapeHtml(snippet.shortcut)}</span></span>
+        <span class="ate-toast-text">${msg}</span>
       `;
 
       toastElement.classList.add('ate-show');
@@ -210,13 +212,20 @@
     });
     result = result.replace(/\{\{time\}\}/gi, () => formatDate(now, 'HH:mm'));
 
-    // 5. Page context: {{url}}, {{domain}}, {{title}}
+    // 5. Day of week, Year, Month: {{day}}, {{year}}, {{month}}
+    const DAYS_VI = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    result = result.replace(/\{\{day\}\}/gi, () => DAYS_VI[now.getDay()]);
+    result = result.replace(/\{\{year\}\}/gi, () => String(now.getFullYear()));
+    result = result.replace(/\{\{month\}\}/gi, () => String(now.getMonth() + 1).padStart(2, '0'));
+
+    // 6. Page context: {{url}}, {{domain}}, {{title}}
     result = result.replace(/\{\{url\}\}/gi, () => window.location.href);
     result = result.replace(/\{\{domain\}\}/gi, () => window.location.hostname);
     result = result.replace(/\{\{title\}\}/gi, () => document.title || '');
 
-    // 6. Clipboard: {{clipboard}}
-    if (result.includes('{{clipboard}}')) {
+    // 7. Clipboard: {{clipboard}}, {{cpboard}}, {{clip}}
+    const clipRegex = /\{\{(?:clipboard|cpboard|clip)\}\}/gi;
+    if (clipRegex.test(result)) {
       let clip = '';
       try {
         if (navigator.clipboard && navigator.clipboard.readText) {
@@ -225,8 +234,41 @@
       } catch (e) {
         console.warn('[Auto Text Expander] Không thể đọc clipboard:', e);
       }
-      result = result.replace(/\{\{clipboard\}\}/gi, () => clip);
+      result = result.replace(clipRegex, () => clip);
     }
+
+    // 8. User Profile from Settings: {{name}}, {{my_name}}, {{my_email}}, {{my_phone}}, {{my_role}}
+    const userName = (settings && (settings.userName || settings.my_name)) || '';
+    const userEmail = (settings && (settings.userEmail || settings.my_email)) || '';
+    const userPhone = (settings && (settings.userPhone || settings.my_phone)) || '';
+    const userRole = (settings && (settings.userRole || settings.my_role)) || '';
+
+    result = result.replace(/\{\{my_name(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userName || (defaultVal ? defaultVal.trim() : 'Bạn');
+    });
+    result = result.replace(/\{\{my_email(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userEmail || (defaultVal ? defaultVal.trim() : '');
+    });
+    result = result.replace(/\{\{my_phone(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userPhone || (defaultVal ? defaultVal.trim() : '');
+    });
+    result = result.replace(/\{\{my_role(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userRole || (defaultVal ? defaultVal.trim() : '');
+    });
+
+    // Replace {{name}} and {{user}}
+    result = result.replace(/\{\{(?:name|user)(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      if (userName) return userName;
+      if (defaultVal) return defaultVal.trim();
+      return 'Bạn';
+    });
+
+    // 9. Random choice: {{random:A|B|C}}
+    result = result.replace(/\{\{random:([^}]+)\}\}/gi, (match, optsStr) => {
+      const opts = optsStr.split('|').map(o => o.trim()).filter(Boolean);
+      if (opts.length === 0) return '';
+      return opts[Math.floor(Math.random() * opts.length)];
+    });
 
     return result;
   }
@@ -236,7 +278,13 @@
     if (!text) return [];
     const fields = [];
     const seenKeys = new Set();
-    const SYSTEM_TAGS = ['date', 'time', 'clipboard', 'url', 'domain', 'title', 'cursor'];
+    const SYSTEM_TAGS = [
+      'date', 'time', 'clipboard', 'cpboard', 'clip',
+      'url', 'domain', 'title', 'cursor',
+      'day', 'year', 'month', 'random',
+      'my_name', 'my_email', 'my_phone', 'my_role',
+      'name', 'user'
+    ];
 
     const regex = /\{\{([^}]+)\}\}/g;
     let match;
@@ -912,6 +960,191 @@
     onTextInputEvent(e);
   }, true);
   document.addEventListener('compositionend', onTextInputEvent, true);
+
+  // Chèn phím tắt trực tiếp từ Command Palette
+  async function insertSnippetDirectly(snippet, targetEl) {
+    if (!snippet) return;
+
+    // 1. Kiểm tra có form điền biến tương tác không
+    const fillInFields = extractFillInFields(snippet.content);
+    if (fillInFields.length > 0) {
+      showFillInModal(snippet, fillInFields, async (fieldValues) => {
+        let content = snippet.content;
+        for (const [key, val] of Object.entries(fieldValues)) {
+          content = content.split(key).join(val);
+        }
+        await doDirectInsert(content, snippet, targetEl);
+      });
+      return;
+    }
+
+    await doDirectInsert(snippet.content, snippet, targetEl);
+  }
+
+  async function doDirectInsert(rawContent, snippet, targetEl) {
+    const resolvedContent = await resolveSystemVariables(rawContent);
+
+    // Trường hợp 1: Target là INPUT hoặc TEXTAREA
+    if (targetEl && (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA') && targetEl.type !== 'password' && targetEl.type !== 'hidden') {
+      targetEl.focus();
+      const isSingleLine = targetEl.tagName === 'INPUT';
+      let replacement = stripMarkdown(resolvedContent, isSingleLine);
+
+      let customCaretIndex = -1;
+      const cursorMarker = '{{cursor}}';
+      if (replacement.includes(cursorMarker)) {
+        customCaretIndex = replacement.indexOf(cursorMarker);
+        replacement = replacement.replace(new RegExp(escapeRegExp(cursorMarker), 'g'), '');
+      }
+
+      const fullValue = targetEl.value || '';
+      const startPos = targetEl.selectionStart ?? fullValue.length;
+      const endPos = targetEl.selectionEnd ?? fullValue.length;
+      const expectedFullValue = fullValue.slice(0, startPos) + replacement + fullValue.slice(endPos);
+      const newCaretPos = customCaretIndex !== -1 ? (startPos + customCaretIndex) : (startPos + replacement.length);
+
+      const isControlledFramework = Boolean(
+        targetEl._valueTracker ||
+        Object.keys(targetEl).some(k => k.startsWith('__reactFiber') || k.startsWith('__reactProps') || k.startsWith('__vue'))
+      );
+
+      if (isControlledFramework) {
+        setNativeInputValue(targetEl, expectedFullValue, newCaretPos);
+      } else {
+        targetEl.focus();
+        targetEl.setSelectionRange(startPos, endPos);
+        let execOk = false;
+        try { execOk = document.execCommand('insertText', false, replacement); } catch (e) {}
+        if (!execOk) {
+          targetEl.value = expectedFullValue;
+          targetEl.setSelectionRange(newCaretPos, newCaretPos);
+          targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+
+      targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+      showToast(snippet);
+      return;
+    }
+
+    // Trường hợp 2: Target là ContentEditable (Gmail, Notion, Docs, Facebook...)
+    const editableRoot = targetEl && (targetEl.isContentEditable ? targetEl : (targetEl.closest?.('[contenteditable="true"]') || targetEl.closest?.('.ql-editor')));
+    if (editableRoot) {
+      editableRoot.focus();
+      const sel = window.getSelection();
+      let range = null;
+      if (sel && sel.rangeCount > 0 && editableRoot.contains(sel.anchorNode)) {
+        range = sel.getRangeAt(0);
+      } else {
+        range = document.createRange();
+        range.selectNodeContents(editableRoot);
+        range.collapse(false);
+        if (sel) {
+          sel.removeAllRanges();
+          sel.addRange(range);
+        }
+      }
+
+      const hasCursorMarker = resolvedContent.includes('{{cursor}}');
+      const isRich = snippet.renderRichText;
+
+      if (isRich) {
+        const CURSOR_MARKER_HTML = '<span id="ate-cursor-marker" style="display:inline;line-height:0;font-size:0;">\u200B</span>';
+        let contentWithMarker = resolvedContent;
+        if (hasCursorMarker) {
+          contentWithMarker = contentWithMarker.replace('{{cursor}}', CURSOR_MARKER_HTML);
+        }
+
+        const htmlContent = renderMarkdownToHtml(contentWithMarker);
+        let success = false;
+        try { success = document.execCommand('insertHTML', false, htmlContent); } catch (e) {}
+
+        if (!success && range) {
+          range.deleteContents();
+          const template = document.createElement('template');
+          template.innerHTML = htmlContent;
+          const frag = template.content;
+          const lastChild = frag.lastChild;
+          range.insertNode(frag);
+          if (lastChild && sel) {
+            range.setStartAfter(lastChild);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+
+        if (hasCursorMarker) {
+          const marker = editableRoot.querySelector('#ate-cursor-marker');
+          if (marker && sel) {
+            const caretRange = document.createRange();
+            caretRange.setStartBefore(marker);
+            caretRange.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(caretRange);
+            marker.remove();
+          }
+        }
+      } else {
+        let plainText = stripMarkdown(resolvedContent, false);
+        let cursorIdx = -1;
+        if (hasCursorMarker) {
+          cursorIdx = plainText.indexOf('{{cursor}}');
+          plainText = plainText.replace('{{cursor}}', '');
+        }
+
+        let success = false;
+        try { success = document.execCommand('insertText', false, plainText); } catch (e) {}
+
+        if (!success && range) {
+          range.deleteContents();
+          const textNode = document.createTextNode(plainText);
+          range.insertNode(textNode);
+          if (sel) {
+            if (cursorIdx !== -1) {
+              range.setStart(textNode, cursorIdx);
+              range.collapse(true);
+            } else {
+              range.setStartAfter(textNode);
+              range.collapse(true);
+            }
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      }
+
+      editableRoot.dispatchEvent(new Event('input', { bubbles: true }));
+      showToast(snippet);
+      return;
+    }
+
+    // Trường hợp 3: Không có ô nhập liệu nào focus -> Copy vào Clipboard
+    let plainText = stripMarkdown(resolvedContent, false).replace('{{cursor}}', '');
+    try {
+      await navigator.clipboard.writeText(plainText);
+      showToast(snippet, `Đã sao chép <span class="ate-toast-shortcut">${escapeHtml(snippet.shortcut)}</span> vào Clipboard!`);
+    } catch (e) {
+      showToast(snippet, `Đã phân giải: ${escapeHtml(snippet.shortcut)}`);
+    }
+  }
+
+  // Khởi tạo cầu nối cho Command Palette
+  window.AteContentBridge = {
+    getSnippets: () => snippets,
+    getMacros: () => macros,
+    getSettings: () => settings,
+    resolveSystemVariables: (text) => resolveSystemVariables(text),
+    stripMarkdown: (text, isSingleLine) => stripMarkdown(text, isSingleLine),
+    renderMarkdownToHtml: (text) => renderMarkdownToHtml(text),
+    insertSnippetDirectly: (snippet, targetEl) => insertSnippetDirectly(snippet, targetEl),
+    playMacroDirectly: (macro) => {
+      if (window.AteMacroReplayer) {
+        window.AteMacroReplayer.play(macro);
+      }
+    },
+    showToast: (snippet, text) => showToast(snippet, text)
+  };
 
   // Khởi động
   loadData();

@@ -1,20 +1,33 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Text Expander</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Auto Text Expander Pro - Liquid Glass</title>
+  <link rel="stylesheet" href="popup.css?v=8.2">
 </head>
 <body>
+  <!-- Ambient Liquid Canvas with Fluid Animated Orbs -->
+  <div class="fluid-canvas" aria-hidden="true">
+    <div class="fluid-orb orb-indigo"></div>
+    <div class="fluid-orb orb-cyan"></div>
+    <div class="fluid-orb orb-rose"></div>
+  </div>
+
   <div class="popup-container">
-    <!-- Top Header -->
+    <!-- Top Frosted Glass Header -->
     <header class="popup-header">
       <div class="header-brand">
-        <img src="../icons/icon32.png" alt="Logo" class="logo">
+        <div class="logo-wrapper">
+          <img src="../icons/icon32.png" alt="Logo" class="logo">
+          <div class="logo-glow"></div>
+        </div>
         <div class="brand-text">
-          <span class="app-title">Auto Text Expander</span>
-          <span class="app-subtitle" id="site-display">Đang kiểm tra trang...</span>
+          <div class="brand-row">
+            <span class="app-title">Auto Text Expander</span>
+            <span class="pro-badge">PRO</span>
+          </div>
+          <span class="app-subtitle" id="site-display" title="Trang web hiện tại">Đang kiểm tra trang...</span>
         </div>
       </div>
       <div class="header-actions">
@@ -37,63 +50,88 @@
         <button class="btn-icon" id="btn-open-options" title="Mở trang Cài đặt & Quản lý">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
         </button>
       </div>
     </header>
 
-    <!-- Site Specific Control Card -->
-    <div class="site-control-card">
-      <div class="site-status-left">
-        <div class="status-pulse" id="site-pulse"></div>
-        <div class="site-status-text">
-          <strong id="site-status-title">Hoạt động trên trang này</strong>
-          <span id="site-status-desc">Phím tắt tự động mở rộng</span>
+    <!-- Scrollable Body with Frosted Glass Panels -->
+    <div class="popup-body">
+      <!-- Site Specific Control Card -->
+      <div class="glass-card site-control-card">
+        <div class="site-status-left">
+          <div class="status-pulse-wrapper">
+            <div class="status-pulse" id="site-pulse"></div>
+          </div>
+          <div class="site-status-text">
+            <strong id="site-status-title">Hoạt động trên trang này</strong>
+            <span id="site-status-desc">Phím tắt tự động mở rộng</span>
+          </div>
         </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="toggle-site-active" checked>
+          <span class="slider"></span>
+        </label>
       </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="toggle-site-active" checked>
-        <span class="slider"></span>
-      </label>
-    </div>
 
-    <!-- Macro Recorder & Quick Run Section -->
-    <div class="macro-quick-card">
-      <div class="macro-card-header">
-        <div class="macro-title-box">
-          <span class="macro-icon-bolt">⚡</span>
-          <strong>Tự Động Hóa (Macro)</strong>
+      <!-- Quick Command Palette Launcher Card -->
+      <div class="glass-card palette-banner-card" id="btn-launch-palette" title="Nhấp để gọi Command Palette trên trang hiện tại">
+        <div class="palette-banner-left">
+          <div class="palette-banner-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          <div class="palette-banner-info">
+            <span class="palette-banner-title">Command Palette</span>
+            <span class="palette-banner-sub">Tìm kiếm & xem trước nổi</span>
+          </div>
         </div>
-        <button type="button" class="btn-rec-pill" id="btn-start-record-macro" title="Bắt đầu ghi lại thao tác trên trang hiện tại">
-          <span class="rec-dot-small"></span>
-          <span>Ghi Thao Tác</span>
-        </button>
+        <div class="palette-shortcut-badge" id="popup-palette-shortcut-badge">
+          Ctrl+Shift+K
+        </div>
       </div>
-      <div class="macro-quick-list" id="macro-quick-list">
+
+      <!-- Macro Quick Section -->
+      <div class="glass-card macro-quick-card">
+        <div class="macro-card-header">
+          <div class="macro-title-box">
+            <span class="macro-icon-bolt">⚡</span>
+            <strong>Tự Động Hóa (Macro)</strong>
+          </div>
+          <button type="button" class="btn-rec-pill" id="btn-start-record-macro" title="Bắt đầu ghi lại thao tác trên trang hiện tại">
+            <span class="rec-dot-small"></span>
+            <span>Ghi Thao Tác</span>
+          </button>
+        </div>
+        <div class="macro-quick-list" id="macro-quick-list">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- Quick Search Shortcuts -->
+      <div class="search-section">
+        <div class="search-input-wrapper">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="popup-search" placeholder="Tìm nhanh phím tắt..." autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Snippets Quick List -->
+      <div class="quick-snippets-list" id="quick-snippets-list">
         <!-- Injected by JS -->
       </div>
     </div>
 
-    <!-- Quick Search Shortcuts -->
-    <div class="search-section">
-      <div class="search-input-wrapper">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" id="popup-search" placeholder="Tìm nhanh phím tắt..." autocomplete="off">
-      </div>
-    </div>
-
-    <!-- Snippets Quick List -->
-    <div class="quick-snippets-list" id="quick-snippets-list">
-      <!-- Injected by JS -->
-    </div>
-
-    <!-- Bottom Footer -->
+    <!-- Bottom Frosted Footer Dock -->
     <footer class="popup-footer">
       <div class="footer-stats">
+        <span class="stats-dot"></span>
         <span id="total-count-label">0 phím tắt</span>
       </div>
       <button class="btn-manage" id="btn-manage-link">

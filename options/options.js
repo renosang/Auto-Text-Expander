@@ -97,7 +97,12 @@
     ],
     triggerType: 'immediate',
     theme: 'light',
-    macroSpeed: 'safe'
+    macroSpeed: 'safe',
+    userName: '',
+    userEmail: '',
+    userPhone: '',
+    userRole: '',
+    paletteShortcut: 'Ctrl+Shift+K'
   };
 
   let currentEditingId = null;
@@ -344,7 +349,18 @@
       .replace(/ss/g, ss);
   }
 
-  function resolveVariablesPreview(text) {
+  async function getClipboardContentSafe() {
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        return await navigator.clipboard.readText();
+      }
+    } catch (e) {
+      console.warn('Không thể đọc Clipboard:', e);
+    }
+    return '';
+  }
+
+  function resolveVariablesPreview(text, realClip = null) {
     if (!text) return '';
     let result = text;
     const now = new Date();
@@ -359,18 +375,69 @@
     result = result.replace(/\{\{date\}\}/gi, () => formatDatePreview(now, 'DD/MM/YYYY'));
     result = result.replace(/\{\{time:([^}]+)\}\}/gi, (match, fmt) => formatDatePreview(now, fmt));
     result = result.replace(/\{\{time\}\}/gi, () => formatDatePreview(now, 'HH:mm'));
+
+    // Day of week, Year, Month: {{day}}, {{year}}, {{month}}
+    const DAYS_VI = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    result = result.replace(/\{\{day\}\}/gi, () => DAYS_VI[now.getDay()]);
+    result = result.replace(/\{\{year\}\}/gi, () => String(now.getFullYear()));
+    result = result.replace(/\{\{month\}\}/gi, () => String(now.getMonth() + 1).padStart(2, '0'));
+
     result = result.replace(/\{\{url\}\}/gi, () => window.location.href);
     result = result.replace(/\{\{domain\}\}/gi, () => window.location.hostname || 'chrome-extension');
     result = result.replace(/\{\{title\}\}/gi, () => document.title || 'Auto Text Expander');
-    result = result.replace(/\{\{clipboard\}\}/gi, '[Nội dung Clipboard]');
+
+    // Clipboard: {{clipboard}}, {{cpboard}}, {{clip}}
+    const clipRegex = /\{\{(?:clipboard|cpboard|clip)\}\}/gi;
+    if (typeof realClip === 'string' && realClip.length > 0) {
+      result = result.replace(clipRegex, () => realClip);
+    } else {
+      result = result.replace(clipRegex, '[Nội dung Clipboard]');
+    }
+
     result = result.replace(/\{\{cursor\}\}/gi, '');
 
+    // User Profile from Settings: {{name}}, {{my_name}}, {{my_email}}, {{my_phone}}, {{my_role}}
+    const userName = (settings && (settings.userName || settings.my_name)) || '';
+    const userEmail = (settings && (settings.userEmail || settings.my_email)) || '';
+    const userPhone = (settings && (settings.userPhone || settings.my_phone)) || '';
+    const userRole = (settings && (settings.userRole || settings.my_role)) || '';
+
+    result = result.replace(/\{\{my_name(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userName || (defaultVal ? defaultVal.trim() : 'Bạn');
+    });
+    result = result.replace(/\{\{my_email(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userEmail || (defaultVal ? defaultVal.trim() : '[Email của bạn]');
+    });
+    result = result.replace(/\{\{my_phone(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userPhone || (defaultVal ? defaultVal.trim() : '[SĐT của bạn]');
+    });
+    result = result.replace(/\{\{my_role(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      return userRole || (defaultVal ? defaultVal.trim() : '[Chức danh]');
+    });
+
+    // Replace {{name}} and {{user}}
+    result = result.replace(/\{\{(?:name|user)(?::([^}]+))?\}\}/gi, (match, defaultVal) => {
+      if (userName) return userName;
+      if (defaultVal) return defaultVal.trim();
+      return 'Bạn';
+    });
+
+    // Random choice: {{random:A|B|C}}
+    result = result.replace(/\{\{random:([^}]+)\}\}/gi, (match, optsStr) => {
+      const opts = optsStr.split('|').map(o => o.trim()).filter(Boolean);
+      if (opts.length === 0) return '';
+      return opts[Math.floor(Math.random() * opts.length)];
+    });
+
+    // Choice: {{choice:A|B|C}}
     result = result.replace(/\{\{choice:(?:[^:]+:)?([^}]+)\}\}/gi, (match, optionsStr) => {
       const opts = optionsStr.split('|');
       return opts[0] ? opts[0].trim() : match;
     });
 
+    // Fill-in fields fallback: {{fieldName}} or {{fieldName:default}}
     result = result.replace(/\{\{([a-zA-Z0-9_\u00C0-\u1EF9]+)(?::([^}]+))?\}\}/gi, (match, fieldName, defaultVal) => {
+      if (fieldName === 'name') return userName || (defaultVal ? defaultVal.trim() : 'Bạn');
       return defaultVal ? defaultVal.trim() : `[${fieldName}]`;
     });
 
@@ -531,26 +598,120 @@
   }
 
   function setupVariableToolbar() {
+    function insertTagAtCursor(tag) {
+      if (!tag || !inputContent) return;
+
+      // Nếu đang ở tab Xem Trước, chuyển về tab Soạn Thảo để con trỏ hiện rõ ràng
+      if (tabPreview && tabPreview.classList.contains('active')) {
+        switchToWriteTab();
+      }
+
+      const start = inputContent.selectionStart ?? inputContent.value.length;
+      const end = inputContent.selectionEnd ?? inputContent.value.length;
+      const text = inputContent.value;
+
+      inputContent.value = text.slice(0, start) + tag + text.slice(end);
+      const newPos = start + tag.length;
+      inputContent.setSelectionRange(newPos, newPos);
+      inputContent.focus();
+    }
+
+    // Quick chips in the toolbar
     const varChips = document.querySelectorAll('.btn-var-chip');
     varChips.forEach(btn => {
       btn.addEventListener('click', () => {
         const varTag = btn.getAttribute('data-var');
-        if (!varTag || !inputContent) return;
+        insertTagAtCursor(varTag);
+      });
+    });
 
-        const start = inputContent.selectionStart;
-        const end = inputContent.selectionEnd;
-        const text = inputContent.value;
+    // Variable Picker Modal
+    const varModal = document.getElementById('var-picker-modal');
+    const btnOpenVarModal = document.getElementById('btn-open-var-modal');
+    const btnCloseVarModal = document.getElementById('btn-close-var-modal');
+    const btnInsertCustomVar = document.getElementById('btn-insert-custom-var');
+    const customVarKey = document.getElementById('custom-var-key');
+    const customVarDefault = document.getElementById('custom-var-default');
 
-        inputContent.value = text.slice(0, start) + varTag + text.slice(end);
-        const newPos = start + varTag.length;
-        inputContent.setSelectionRange(newPos, newPos);
-        inputContent.focus();
+    function openVarModal() {
+      if (varModal) {
+        varModal.style.display = 'flex';
+        setTimeout(() => {
+          if (customVarKey) customVarKey.focus();
+        }, 100);
+      }
+    }
 
-        if (tabPreview.classList.contains('active')) {
-          switchToPreviewTab();
+    function closeVarModal() {
+      if (varModal) varModal.style.display = 'none';
+    }
+
+    if (btnOpenVarModal) btnOpenVarModal.addEventListener('click', openVarModal);
+    if (btnCloseVarModal) btnCloseVarModal.addEventListener('click', closeVarModal);
+    if (varModal) {
+      varModal.addEventListener('click', (e) => {
+        if (e.target === varModal) closeVarModal();
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && varModal && varModal.style.display === 'flex') {
+        closeVarModal();
+      }
+    });
+
+    // Selectable cards in Variable Modal
+    document.querySelectorAll('.btn-var-select-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const tag = card.getAttribute('data-insert');
+        if (tag) {
+          insertTagAtCursor(tag);
+          closeVarModal();
+          showToast(`Đã chèn biến ${tag} vào nội dung!`, 'success');
         }
       });
     });
+
+    // Custom variable creator
+    const handleInsertCustom = () => {
+      const rawKey = (customVarKey ? customVarKey.value : '').trim();
+      const rawDefault = (customVarDefault ? customVarDefault.value : '').trim();
+
+      if (!rawKey) {
+        showToast('Vui lòng nhập tên trường biến (Field Key)!', 'error');
+        if (customVarKey) customVarKey.focus();
+        return;
+      }
+
+      const cleanKey = rawKey.replace(/[{}\s]/g, '_');
+      const customTag = rawDefault ? `{{${cleanKey}:${rawDefault}}}` : `{{${cleanKey}}}`;
+      insertTagAtCursor(customTag);
+
+      if (customVarKey) customVarKey.value = '';
+      if (customVarDefault) customVarDefault.value = '';
+      closeVarModal();
+      showToast(`Đã tạo và chèn biến ${customTag}!`, 'success');
+    };
+
+    if (btnInsertCustomVar) {
+      btnInsertCustomVar.addEventListener('click', handleInsertCustom);
+    }
+    if (customVarKey) {
+      customVarKey.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleInsertCustom();
+        }
+      });
+    }
+    if (customVarDefault) {
+      customVarDefault.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleInsertCustom();
+        }
+      });
+    }
   }
 
   // -------------------------------------------------------------
@@ -913,14 +1074,15 @@
     previewContainer.style.display = 'none';
   }
 
-  function switchToPreviewTab() {
+  async function switchToPreviewTab() {
     tabPreview.classList.add('active');
     tabWrite.classList.remove('active');
     inputContent.style.display = 'none';
     previewContainer.style.display = 'block';
 
     const raw = inputContent.value || '*Không có nội dung để xem trước.*';
-    const previewContent = resolveVariablesPreview(raw);
+    const realClip = await getClipboardContentSafe();
+    const previewContent = resolveVariablesPreview(raw, realClip);
     previewContainer.innerHTML = renderMarkdownToHtml(previewContent);
   }
 
@@ -1160,7 +1322,7 @@
   // TEST LAB (PLAYGROUND HOÀN CHỈNH)
   // -------------------------------------------------------------
   function setupTestLab() {
-    const handleExpandInField = (field, isRich = false) => {
+    const handleExpandInField = async (field, isRich = false) => {
       if (!isRich) {
         const caret = field.selectionEnd;
         const textBefore = field.value.slice(0, caret);
@@ -1169,7 +1331,8 @@
           if (s.shortcut && textBefore.endsWith(s.shortcut)) {
             const start = caret - s.shortcut.length;
             const isSingleLine = field.tagName === 'INPUT';
-            const previewContent = resolveVariablesPreview(s.content);
+            const realClip = await getClipboardContentSafe();
+            const previewContent = resolveVariablesPreview(s.content, realClip);
             let cleanText = stripMarkdown(previewContent, isSingleLine);
             let cursorIdx = cleanText.indexOf('{{cursor}}');
             if (cursorIdx !== -1) cleanText = cleanText.replace('{{cursor}}', '');
@@ -1179,7 +1342,7 @@
               const targetPos = start + cursorIdx;
               field.setSelectionRange(targetPos, targetPos);
             }
-            showToast(`Đã mở rộng "${s.shortcut}" trong Test Lab (Đã phân giải biến)`, 'success');
+            showToast(`Đã mở rộng "${s.shortcut}" trong Test Lab`, 'success');
             return;
           }
         }
@@ -1195,7 +1358,7 @@
 
     // Rich editor expansion
     if (testRichEditor) {
-      testRichEditor.addEventListener('input', () => {
+      testRichEditor.addEventListener('input', async () => {
         const sel = window.getSelection();
         if (!sel || !sel.isCollapsed || !sel.anchorNode) return;
         const node = sel.anchorNode;
@@ -1212,7 +1375,8 @@
             sel.removeAllRanges();
             sel.addRange(range);
 
-            const previewContent = resolveVariablesPreview(s.content);
+            const realClip = await getClipboardContentSafe();
+            const previewContent = resolveVariablesPreview(s.content, realClip);
             if (s.renderRichText && typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
               const html = DOMPurify.sanitize(marked.parse(previewContent));
               document.execCommand('insertHTML', false, html);
@@ -1972,9 +2136,133 @@
       if (themeRadioDark) themeRadioDark.checked = true;
     }
 
-    btnSaveSettings.addEventListener('click', async () => {
+    // Profile input fields in Card 3
+    const settingUserName = document.getElementById('setting-user-name');
+    const settingUserEmail = document.getElementById('setting-user-email');
+    const settingUserPhone = document.getElementById('setting-user-phone');
+    const settingUserRole = document.getElementById('setting-user-role');
+    const btnSaveProfile = document.getElementById('btn-save-profile');
+
+    if (settingUserName) settingUserName.value = settings.userName || '';
+    if (settingUserEmail) settingUserEmail.value = settings.userEmail || '';
+    if (settingUserPhone) settingUserPhone.value = settings.userPhone || '';
+    if (settingUserRole) settingUserRole.value = settings.userRole || '';
+
+    // Palette Shortcut customizer
+    const inputPaletteShortcut = document.getElementById('setting-palette-shortcut');
+    const btnResetPaletteShortcut = document.getElementById('btn-reset-palette-shortcut');
+    const presetShortcutBtns = document.querySelectorAll('.btn-preset-shortcut');
+
+    const updatePresetActiveState = (combo) => {
+      presetShortcutBtns.forEach(btn => {
+        if (btn.getAttribute('data-combo') === combo) {
+          btn.classList.add('accent');
+        } else {
+          btn.classList.remove('accent');
+        }
+      });
+    };
+
+    if (inputPaletteShortcut) {
+      const currentCombo = settings.paletteShortcut || 'Ctrl+Shift+K';
+      inputPaletteShortcut.value = currentCombo;
+      updatePresetActiveState(currentCombo);
+
+      let isRecording = false;
+
+      inputPaletteShortcut.addEventListener('focus', () => {
+        isRecording = true;
+        inputPaletteShortcut.value = 'Đang chờ bấm phím...';
+        inputPaletteShortcut.style.borderColor = 'var(--primary)';
+        inputPaletteShortcut.style.boxShadow = '0 0 0 3px rgba(99, 102, 241, 0.25)';
+      });
+
+      inputPaletteShortcut.addEventListener('blur', () => {
+        isRecording = false;
+        inputPaletteShortcut.value = settings.paletteShortcut || 'Ctrl+Shift+K';
+        inputPaletteShortcut.style.borderColor = '';
+        inputPaletteShortcut.style.boxShadow = '';
+      });
+
+      inputPaletteShortcut.addEventListener('keydown', (e) => {
+        if (!isRecording) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (e.key === 'Escape') {
+          inputPaletteShortcut.blur();
+          return;
+        }
+
+        // Bỏ qua nếu chỉ mới bấm phím bổ trợ Modifier (Ctrl, Shift, Alt, Meta)
+        if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) {
+          const mods = [];
+          if (e.ctrlKey) mods.push('Ctrl');
+          if (e.altKey) mods.push('Alt');
+          if (e.shiftKey) mods.push('Shift');
+          if (e.metaKey) mods.push('Cmd');
+          inputPaletteShortcut.value = mods.join('+') + ' + ...';
+          return;
+        }
+
+        const parts = [];
+        if (e.ctrlKey) parts.push('Ctrl');
+        if (e.altKey) parts.push('Alt');
+        if (e.shiftKey) parts.push('Shift');
+        if (e.metaKey) parts.push('Cmd');
+
+        // Bắt buộc phải có ít nhất 1 phím bổ trợ để không chiếm dụng phím gõ thường
+        if (parts.length === 0) {
+          showToast('Vui lòng kết hợp với phím Ctrl, Alt hoặc Shift!', 'error');
+          return;
+        }
+
+        let keyName = e.key;
+        if (keyName === ' ') keyName = 'Space';
+        else if (keyName.length === 1) keyName = keyName.toUpperCase();
+
+        parts.push(keyName);
+        const combo = parts.join('+');
+
+        inputPaletteShortcut.value = combo;
+        settings.paletteShortcut = combo;
+        updatePresetActiveState(combo);
+        isRecording = false;
+        inputPaletteShortcut.blur();
+
+        saveData();
+        showToast(`Đã lưu phím tắt Command Palette: ${combo}`, 'success');
+      });
+    }
+
+    if (btnResetPaletteShortcut) {
+      btnResetPaletteShortcut.addEventListener('click', () => {
+        const defaultCombo = 'Ctrl+Shift+K';
+        if (inputPaletteShortcut) inputPaletteShortcut.value = defaultCombo;
+        settings.paletteShortcut = defaultCombo;
+        updatePresetActiveState(defaultCombo);
+        saveData();
+        showToast('Đã đặt lại phím tắt mặc định: Ctrl+Shift+K', 'success');
+      });
+    }
+
+    presetShortcutBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const combo = btn.getAttribute('data-combo');
+        if (combo && inputPaletteShortcut) {
+          inputPaletteShortcut.value = combo;
+          settings.paletteShortcut = combo;
+          updatePresetActiveState(combo);
+          saveData();
+          showToast(`Đã chọn phím tắt: ${combo}`, 'success');
+        }
+      });
+    });
+
+    const saveSettingsHandler = async (isProfileOnly = false) => {
       settings.enabled = checkGlobalEnable.checked;
-      settings.triggerType = document.querySelector('input[name="triggerType"]:checked').value;
+      const triggerRadio = document.querySelector('input[name="triggerType"]:checked');
+      if (triggerRadio) settings.triggerType = triggerRadio.value;
 
       const selectedTheme = document.querySelector('input[name="themeSetting"]:checked');
       if (selectedTheme) {
@@ -1982,9 +2270,26 @@
         applyTheme(settings.theme);
       }
 
+      if (settingUserName) settings.userName = settingUserName.value.trim();
+      if (settingUserEmail) settings.userEmail = settingUserEmail.value.trim();
+      if (settingUserPhone) settings.userPhone = settingUserPhone.value.trim();
+      if (settingUserRole) settings.userRole = settingUserRole.value.trim();
+      if (inputPaletteShortcut) settings.paletteShortcut = inputPaletteShortcut.value.trim() || 'Ctrl+Shift+K';
+
       await saveData();
-      showToast('Đã lưu cấu hình hoạt động!', 'success');
-    });
+      if (isProfileOnly) {
+        showToast('Đã lưu thông tin hồ sơ cá nhân thành công!', 'success');
+      } else {
+        showToast('Đã lưu toàn bộ cấu hình và hồ sơ cá nhân!', 'success');
+      }
+    };
+
+    if (btnSaveSettings) {
+      btnSaveSettings.addEventListener('click', () => saveSettingsHandler(false));
+    }
+    if (btnSaveProfile) {
+      btnSaveProfile.addEventListener('click', () => saveSettingsHandler(true));
+    }
   }
 
   function escapeHtml(text) {
