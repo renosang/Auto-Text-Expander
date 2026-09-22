@@ -7,7 +7,9 @@ if (!fs.existsSync(distDir)) {
   fs.mkdirSync(distDir, { recursive: true });
 }
 
-const zipPath = path.join(distDir, 'auto-text-expander-v1.0.0.zip');
+const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'manifest.json'), 'utf8'));
+const version = manifest.version || '1.0.1';
+const zipPath = path.join(distDir, `auto-text-expander-v${version}.zip`);
 if (fs.existsSync(zipPath)) {
   fs.unlinkSync(zipPath);
 }

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Auto Text Expander",
   "short_name": "TextExpander",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tự động mở rộng từ khóa phím tắt thành văn bản, hỗ trợ định dạng Markdown, lọc theo URL và kiểm tra trước khi lưu.",
   "icons": {
     "16": "icons/icon16.png",
